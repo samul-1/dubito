@@ -3,7 +3,6 @@ asgiref==3.2.10
 astroid==2.4.2
 attrs==19.3.0
 bcrypt==3.1.7
-blinker==1.4
 Brlapi==0.7.0
 cached-property==1.5.1
 cachetools==4.0.0
