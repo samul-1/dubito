@@ -1,5 +1,4 @@
 appdirs==1.4.3
-asgiref==3.2.10
 Brlapi==0.7.0
 cached-property==1.5.1
 cachetools==4.0.0
