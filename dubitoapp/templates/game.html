@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <meta charset="utf-8"/>
+    <title>Dubito</title>
+    <link rel="stylesheet" href="{% static "game/style.css" %}" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <!-- CSS only -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.rawgit.com/nnattawat/flip/master/dist/jquery.flip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
+</head>
+<body>
+    <style>
+        .player_col {
+            flex: 0 0 {{ col_width }}%;
+            max-width: {{ col_width }}%;
+        }
+    </style>
+    <div class="container-fluid h-100">
+        <div class="row h-20 ui-blue bottom-bordered side-bordered padded">
+            {% for i in n_p %}
+                {% if i != player_num_decremented %}
+                    <div id="player_col_{{i}}" class="col player_col">
+                        <p id="player_name_{{i}}" class="small-text">
+                            Giocatore {{i}}
+                            <!--<span id="active_turn_{{ i }}">
+                                {% if i == turn_decremented%}
+                                    <div class="active_turn"></div>
+                                {% endif %}
+                            </span>-->
+                        </p>
+                        <img {% if i == turn_decremented%}class="active_turn"{% endif %} id="player_hand_{{i}}" style="width:70px;height:auto" src="{% static "game/img/cards/handcards.png" %}" data-toggle="popover" data-content="Text!!!" data-placement="bottom" />
+                        <span id="cards_in_hand_{{i}}" class="parenthesized small-text">-</span>
+                        <span id="player_doubt_{{i}}"></span>
+                        <span id="player_speaker_{{i}}"></span>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="row h-25 padded overflow-auto">
+            <!--<div style="margin-left: 30%" class="text-center">-->
+                <div class="col col-30">
+                    <div style="display:inline-block">
+                        <!--<p class="backgrounded-text">Sei il giocatore {{ player_num }}</p>-->
+                        <p class="backgrounded-text">È il turno di <span id="turn_elem">{{ turn_player_name }}</span></span></p>
+                        <p class="backgrounded-text">Carta attuale: <span id="curr_card"><img src="{% static "game/img/cards/" %}icon-{{ current_card}}.png" class="card_icon" /></span></p>
+                    </div>
+                </div>
+                <div class="col col-15">
+                    <span style="position:absolute; right: 33.5%" class="no_margin parenthesized" id="stack_number"></span><br />
+                    <span id="hidden_card"><img style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" /></span>
+                    <span id="card_stack" style="position:absolute; right:25%"><img style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" /></span>
+                    <div id="stacked_card"> 
+                        <div class="front"> 
+                            <img id="stacked_front" style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" />
+                        </div> 
+                        <div class="back">
+                            <img id="stacked_back" style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" />
+                        </div> 
+                    </div>
+                    <div style="position:absolute; right:0; display:none; z-index:0" id="hidden_uncovered_card_div">
+                        <img id="hidden_uncovered_card" style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" />
+                    </div>
+                </div>
+                <div class="col col-15">
+                    <button class="btn btn-lg btn-dark" id="doubt">Dubito</button>
+                    <button class="btn btn-lg btn-dark" id="place">Metti giù</button><br /><br />
+                    <p class="backgrounded-text">Hai selezionato <strong><span id="n_selected_cards">0</span></strong> carte</p><br />
+                </div>
+                <div class="col col-30">
+                    <!--<p id="user_count"></p>-->
+                    <div id="claimed_choice">
+                        <!--<span>Che carta dirai di aver messo?</span>
+                        <select id="claimed_card_list">
+                            <option value="1">Asso</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">J</option>
+                            <option value="12">Q</option>
+                            <option value="13">K</option>
+                        </select>-->
+
+                        <div id="claimed_card_list">
+                            <h5>Quale carta annunci?</h5><hr />
+                            <input id="c_1" type="radio" name="card-choice" value="1"> <label for="c_1">Asso</label><br />
+                            <input id="c_2" type="radio" name="card-choice" value="2"> <label for="c_2">2</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <input id="c_3" type="radio" name="card-choice" value="3"> <label for="c_3">3</label><br />
+                            <input id="c_4" type="radio" name="card-choice" value="4"> <label for="c_4">4</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <input id="c_5" type="radio" name="card-choice" value="5"> <label for="c_5">5</label><br />
+                            <input id="c_6" type="radio" name="card-choice" value="6"> <label for="c_6">6</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <input id="c_7" type="radio" name="card-choice" value="7"> <label for="c_7">7</label><br />
+                            <input id="c_8" type="radio" name="card-choice" value="8"> <label for="c_8">8</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <input id="c_9" type="radio" name="card-choice" value="9"> <label for="c_9">9</label><br />
+                            <input id="c_10" type="radio" name="card-choice" value="10"> <label for="c_10">10</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <input id="c_11" type="radio" name="card-choice" value="11"> <label for="c_11">J</label><br />
+                            <input id="c_12" type="radio" name="card-choice" value="12"> <label for="c_12">Q</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <input id="c_13" type="radio" name="card-choice" value="13"> <label for="c_13">K</label>
+                        </div>
+                    </div>
+                </div>
+            <!--</div>-->
+        </div>
+        <div class="row h-55 top-bordered ui-green side-bordered padded">
+            <p style="position:absolute;margin-top:-47px;margin-left:-10px">Le mie carte <span class="parenthesized" id="my_card_count"></span> <span class="btn btn-sm btn-dark" onclick="sort_cards()">Ordina</span></p>
+            <div id="my_cards"></div>
+        </div>
+    </div>
+
+    <div id="stack_modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" style="max-width:800px" role="document">
+          <div class="modal-content stack-modal-content">
+            <div class="modal-header" style="border:0!important;background-color:transparent">
+                <h5 id="player_doubted_title" class="modal-title"></h5>
+            </div>
+            <div id="doubt_outcome">
+            </div>
+            <div style="text-align:center" id="stack_modal_body" class="modal-body">
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div id="card_choice_modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" style="max-width:1000px" role="document">
+          <div class="modal-content stack-modal-content">
+            <div class="modal-header" style="border:0!important;background-color:transparent">
+                <h1 class="ml1" id="card_choice_title" class="modal-title">
+                    <span class="text-wrapper">
+                      <span class="line line1"></span>
+                      <span class="letters">Tocca a te!<br /> Scegli la carta da annunciare</span>
+                      <span class="line line2"></span>
+                    </span>
+                </h1>
+            </div>
+            <!-- <div id="doubt_outcome">
+            </div>
+            <div style="text-align:center" id="stack_modal_body" class="modal-body">
+            </div> -->
+          </div>
+        </div>
+    </div>
+
+    
+
+    <!-- <div id="card_selection_modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Modal title</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div id="card_selection_modal_body" class="modal-body">
+                <select id="claimed_card_list">
+                    <option value="1">Asso</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">J</option>
+                    <option value="12">Q</option>
+                    <option value="13">K</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary">Save changes</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+    </div> -->
+    <script>
+        const game_id = {{ game_id }}
+        const n_players = {{ n_players }}
+        const my_id = {{ player_id }}
+        const my_player_num = {{ player_num }}
+        const my_name = '{{ player_name }}'
+        let turn = {{ turn }}
+        let last_turn = {{ last_turn }}
+        const static_path = "{% static "game" %}/"
+        const static_path_to_card_img = static_path + "img/cards/"
+        let current_card = {{ current_card }}
+        let last_card = {{ last_card }}
+
+        var xhttp = new XMLHttpRequest()
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                if(parseInt(this.responseText) == {{ n_players }}) {
+                    begin_game()
+                    clearInterval(handle)
+                }
+            }
+        }
+        get_joined_users = function() {
+            xhttp.open("GET", "/game/get_joined_players/" + {{ game_id }} + "/", true)
+            xhttp.send()
+        }
+        let handle = setInterval(get_joined_users, 1000)
+    </script>
+    <script src="{% static "game/frontend.js" %}"></script>
+    <script src="{% static "game/ui.js" %}"></script>
+</body>
+</html>

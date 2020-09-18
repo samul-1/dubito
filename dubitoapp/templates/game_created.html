@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+        <head>
+            {% load static %}
+            <link rel="stylesheet" href="{% static "game/page_style.css" %}" />
+            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+            <!-- CSS only -->
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+            <!-- JS, Popper.js, and jQuery -->
+            <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+            <script src="https://cdn.rawgit.com/nnattawat/flip/master/dist/jquery.flip.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
+            <title>Partita creata</title>
+        </head>
+
+        <body>
+            <nav class="navbar navbar-dark bg-dark">
+                <h1>Dubito!</h1>
+            </nav>
+            <div id="main_container">
+                <h2>{{ your_name }}, la tua partita è stata creata.</h2>
+                <h4>Il codice partita è: <strong class="big">{{ game_code }}</strong>. Invialo agli altri giocatori e attendi su questa pagina.</h4>
+                <hr /><div style="display:inline-block"><span><span id="user_count">1</span>/{{ n_players }} giocatori sono entrati <div class="loader"></div></span></div>
+            </div>
+            <script>
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        if(parseInt(this.responseText) == {{ n_players }}) {
+                            location.replace("/game/game/" + {{ game_id }})
+                        } else {
+                            document.getElementById("user_count").innerHTML = this.responseText
+                        }
+                    }
+                };
+                get_joined_users = function() {
+                    xhttp.open("GET", "get_joined_players/" + {{ game_id }} + "/", true);
+                    xhttp.send();
+                }
+                setInterval(get_joined_users, 1000)
+            </script>
+        </body>
+</html>

@@ -1,0 +1,452 @@
+@import url('https://fonts.googleapis.com/css2?family=PT+Sans&display=swap');
+
+html, body {
+    height: 100%;
+    font-family: 'PT Sans', sans-serif;
+    background-color: #b0c1dc !important;
+    /*background-image: url("https://www.daanvideo.nl/wp-content/uploads/2018/11/malaysia-coins-falling-slow-motion-on-white-background-business-finance-currency-concept-1080p-250fps_vkgzplmbx__F0000.png")*/
+    background-image: url("http://playcards.altervista.org/img/w-border.jpeg");
+    color: white !important;
+}
+
+.card_in_hand {
+    width: 65px;
+    height: auto;
+    cursor: pointer;
+    border: 1px solid transparent;
+    margin-bottom: 5px;
+    margin-right: 4px;
+}
+
+/* make cards bigger on phone */
+@media only screen and (max-width: 1068px) {
+  .card_in_hand {
+    width: 80px;
+  }
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.parenthesized::before {
+    content: "(";
+}
+
+.parenthesized::after {
+    content: ")";
+}
+
+#my_cards {
+  max-height: 100%;
+  overflow-y: auto;
+  padding-left: 10px;
+  overflow-wrap: break-word;
+}
+
+button {
+    border: 1px solid #303030 !important;
+}
+
+.card_icon {
+  width: 25px;
+  height: auto;
+}
+
+.selected {
+    border: 2px solid red;
+    border-radius: 6px;
+}
+
+.h-30 {
+    height: 30% !important;
+}
+
+.h-20 {
+    height: 20% !important;
+}
+
+.h-25 {
+    height: 25% !important;
+}
+
+.h-40 {
+    height: 40% !important;
+}
+
+.h-55 {
+    height: 55% !important;
+}
+
+.padded {
+    padding: 10px;
+}
+
+.row {
+    margin-left: 15px !important;
+    margin-right: 15px !important;
+}
+
+.bottom-bordered {
+    border-bottom: 1px solid black;
+    -webkit-box-shadow: 0 3px 5px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0 3px 5px 0px rgba(0,0,0,0.75);
+    box-shadow: 0 3px 5px 0px rgba(0,0,0,0.75);
+}
+
+.top-bordered {
+    border-top: 1px solid black;
+    -webkit-box-shadow: 3px -2px 2px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 3px -2px 2px 0px rgba(0,0,0,0.75);
+    box-shadow: 3px -2px 2px 0px rgba(0,0,0,0.75);
+}
+
+.side-bordered {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    border-radius: 2px;
+
+
+}
+
+#stacked_card {
+    position: absolute !important;
+    right: 25%;
+}
+
+#claimed_choice {
+    border: 1px solid transparent;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: gray;
+    max-width: 200px;
+    max-height: 130px;
+    overflow-y: auto;
+    position: absolute;
+    right: 5%;
+    transition: position 1s;
+}
+
+.overflow-auto {
+    overflow: auto;
+}
+
+.small-text {
+    font-size: 0.9em;
+    margin-bottom: 0;
+}
+
+.no_margin {
+    margin: 0 !important;
+}
+
+#hidden_card {
+    opacity: 0;
+    position: absolute;
+    right: 60%;
+    z-index: 3;
+}
+
+/* .flip-card {
+    display: inline-block;
+} */
+
+.card-grid {
+    width: 100px;
+    height: 100px;
+    margin: 20px;
+    display: inline-block;
+  }
+  
+  .card-grid .front, .card-grid .back {
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .card-grid .back {
+    color: white;
+  }
+  
+  .stack-modal-content {
+    background-color: rgba(0,0,0,0.8) !important;
+    border: 0 !important;
+    padding-bottom: 10px;
+  }
+
+  .modal-backdrop {
+      opacity: 0.35 !important;
+  }
+
+  /* animated text */
+
+  .ml3 {
+    font-weight: 900;
+    font-size: 2em;
+    color: red;
+    text-align: center;
+    text-shadow: 1px 1px black;
+  }
+
+  .ml15 {
+    font-weight: 800;
+    font-size: 2em;
+    text-transform: uppercase;
+    letter-spacing: 0.5em;
+    color: green;
+    text-align: center;
+    text-shadow: 1px 1px black;
+  }
+  
+  .ml15 .word {
+    display: inline-block;
+    line-height: 1em;
+  }
+
+  .ml10 {
+    position: relative;
+    font-weight: 900;
+    font-size: 2em;
+  }
+  
+  .ml10 .text-wrapper {
+    position: relative;
+    display: inline-block;
+    padding-top: 0.2em;
+    padding-right: 0.05em;
+    padding-bottom: 0.1em;
+    overflow: hidden;
+  }
+  
+  .ml10 .letter {
+    display: inline-block;
+    line-height: 1em;
+    transform-origin: 0 0;
+  }
+
+
+  .ml6 {
+    position: relative;
+    font-weight: 900;
+    font-size: 2.8em;
+    color: white;
+  }
+  
+  .ml6 .text-wrapper {
+    position: relative;
+    display: inline-block;
+    padding-top: 0.2em;
+    padding-right: 0.05em;
+    padding-bottom: 0.1em;
+    overflow: hidden;
+  }
+  
+  .ml6 .letter {
+    display: inline-block;
+    line-height: 1em;
+  }
+
+  .ml1 {
+    color: white;
+    font-weight: 900;
+    font-size: 3em;
+    text-align: center;
+  }
+  
+  .ml1 .letter {
+    display: inline-block;
+    line-height: 1em;
+  }
+  
+  .ml1 .text-wrapper {
+    position: relative;
+    display: inline-block;
+    padding-top: 0.1em;
+    padding-right: 0.05em;
+    padding-bottom: 0.15em;
+  }
+  
+  .ml1 .line {
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background-color: #fff;
+    transform-origin: 0 0;
+  }
+  
+  .ml1 .line1 { top: 0; }
+  .ml1 .line2 { bottom: 0; }
+
+  /* active turn animation */
+
+
+@keyframes border-pulsate {
+    0%   { border-color: rgb(255, 36, 36); }
+    50% { border-color: rgba(0, 255, 255, 0); }
+    100%   { border-color: rgb(255, 87, 36); }
+}
+
+.active_turn {
+    border: 4px solid black;
+    border-radius: 5px;
+    animation: border-pulsate 1s infinite;
+}
+
+.active_turn::after {
+  content: 'sdf';
+}
+
+/* select card reminder animation */
+
+/* .reminder::before {
+    content: ">"
+} */
+
+.reminder {
+    background-color: gray;
+    animation-name: color;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    text-align: center;
+    top: 15%;
+    right: 10%;
+    position: fixed !important;
+    z-index: 2;
+    max-width: 250px !important;
+    max-height: 100% !important;
+    -webkit-box-shadow: 8px 8px 5px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 8px 8px 5px 0px rgba(0,0,0,0.75);
+    box-shadow: 8px 8px 5px 0px rgba(0,0,0,0.75);
+  }
+
+  input {
+      padding-right: 20px;
+  }
+  
+  @keyframes color {
+    0% {
+      background-color: gray;
+    }
+    50% {
+      background-color: #585858;
+    }
+    100% {
+      background-color: gray;
+    }
+  }
+
+  .backgrounded-text {
+      padding: 10px;
+      background-color: gray;
+      opacity: 95%;
+      border-radius: 5px;
+      text-align: center;
+  }
+
+  .col-50 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+
+  .popover-body {
+      font-size: 1.5em
+  }
+
+  .ui-blue {
+      background-color: #02396C;
+      background-image: url("https://img.freepik.com/free-vector/poker-table-background-blue-color_47243-1095.jpg?size=626&ext=jpg");
+      color: white;
+      background-size: cover;
+
+  }
+
+  .ui-green {
+      background-color: #348104;
+      background-image: url("https://image.freepik.com/free-vector/poker-table-background-green-color_47243-1068.jpg");
+      background-size: cover;
+    }
+
+  /* scrollbar */
+
+  /* width */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px grey; 
+    border-radius: 2px;
+  }
+   
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #484848; 
+    border-radius: 3px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #202020; 
+  }
+
+  /* loader */
+
+  .loader,
+.loader:before,
+.loader:after {
+  border-radius: 50%;
+  width: 2.5em;
+  height: 2.5em;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  -webkit-animation: load7 1.8s infinite ease-in-out;
+  animation: load7 1.8s infinite ease-in-out;
+}
+.loader {
+  color: #ffffff;
+  font-size: 10px;
+  margin: 80px auto;
+  position: relative;
+  text-indent: -9999em;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation-delay: -0.16s;
+  animation-delay: -0.16s;
+}
+.loader:before,
+.loader:after {
+  content: '';
+  position: absolute;
+  top: 0;
+}
+.loader:before {
+  left: -3.5em;
+  -webkit-animation-delay: -0.32s;
+  animation-delay: -0.32s;
+}
+.loader:after {
+  left: 3.5em;
+}
+@-webkit-keyframes load7 {
+  0%,
+  80%,
+  100% {
+    box-shadow: 0 2.5em 0 -1.3em;
+  }
+  40% {
+    box-shadow: 0 2.5em 0 0;
+  }
+}
+@keyframes load7 {
+  0%,
+  80%,
+  100% {
+    box-shadow: 0 2.5em 0 -1.3em;
+  }
+  40% {
+    box-shadow: 0 2.5em 0 0;
+  }
+}
