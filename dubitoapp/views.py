@@ -9,6 +9,8 @@ from .forms import GameForm, JoinForm
 
 from django.http import HttpResponse, HttpResponseRedirect
 
+def test(request):
+    return render(request, "gametest.html")
 
 def index(request):
     return render(request, "index.html")
@@ -164,7 +166,7 @@ def game(request, game_id):
         turn_player_name = '-'
 
     # return HttpResponse("Success! You are playing this game")
-    return render(request, 'game.html', {
+    return render(request, 'gametest.html', {
         'n_p' : range(this_game.number_of_players), # used for printing columns for each player in template
         'game_id': this_game.pk,
         'player_name': this_player.name,

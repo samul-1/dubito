@@ -10,4 +10,5 @@ urlpatterns = [
     path('join_game', views.join_game),
     re_path(r'^game/(?P<game_id>\d+)/$', views.game, name='game'),
     re_path(r'^get_joined_players/(?P<game_id>\d+)/$', views.get_joined_players),
+    path('test', views.test),
 ]

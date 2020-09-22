@@ -7,11 +7,11 @@ class Game(models.Model):
     number_of_players = models.IntegerField()
     joined_players = models.IntegerField(default=1)
     player_current_turn = models.IntegerField(null=True)
-    player_last_turn = models.IntegerField(null=True, default=-1)
+    player_last_turn = models.IntegerField(default=-1)
     current_card = models.IntegerField(null=True, default=0)
     last_card = models.IntegerField(null=True, default=0)
     stacked_cards = models.CharField(max_length=300, default="[]")
-    last_amount_played = models.IntegerField(null=True)
+    last_amount_played = models.IntegerField(default=0)
     locked = models.BooleanField(default=False) # used to prevent actions while there are interruptions
     has_begun = models.BooleanField(default=False)
     winning_player = models.IntegerField(default=-1)
@@ -24,6 +24,7 @@ class Player(models.Model):
     game_id = models.ForeignKey(Game, on_delete=models.CASCADE)
     player_number = models.IntegerField(default=1)
     name = models.CharField(max_length=50)
+    is_online = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.pk)

@@ -4,6 +4,7 @@
     {% load static %}
     <meta charset="utf-8"/>
     <title>Dubito</title>
+
     <link rel="stylesheet" href="{% static "game/style.css" %}" />
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
@@ -24,6 +25,7 @@
             max-width: {{ col_width }}%;
         }
     </style>
+    <div id="app"></div>
     <div class="container-fluid h-100">
         <div class="row h-20 ui-blue bottom-bordered side-bordered padded">
             {% for i in n_p %}

@@ -9,18 +9,6 @@ from asgiref.sync import sync_to_async
 
 
 class GameConsumer(AsyncWebsocketConsumer):
-    async def send_new_state_to_all_players(self, event_specifics):
-        game_id = self.scope['url_route']['kwargs']['game_id']
-        for player in await sync_to_async(list)(Player.objects.filter(Q(game_id=game_id))):
-            await self.channel_layer.group_send(
-                self.game_group_name,
-                {
-                    'type': 'game_state_handler',
-                    'player_id': player.pk,
-                    'event_specifics': event_specifics,
-                }
-            )
-
     async def connect(self):
         self.game_id = self.scope['url_route']['kwargs']['game_id']
         self.player_id = self.scope['session']['player_id']
@@ -41,44 +29,49 @@ class GameConsumer(AsyncWebsocketConsumer):
         #     }
         # )
 
-        # # Send message to everybody about the player entering and how many cards they have
-        # await self.channel_layer.group_send(
-        #     self.game_group_name,
-        #     {
-        #         'type': 'player_joined_handler',
-        #         'player_id': self.player_id,
-        #         'number_of_cards': await self.get_number_of_cards_in_hand(self.player_id),
-        #     }
-        # )
+        # Send message to everybody about the player entering and how many cards they have
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'player_joined_handler',
+                'player_id': self.player_id,
+                'number_of_cards': await self.get_number_of_cards_in_hand(self.player_id),
+            }
+        )
 
-        # stack = await self.get_stacked_cards(self.game_id)
-        # stacked_cards = len(stack)
+        stack = await self.get_stacked_cards(self.game_id)
+        stacked_cards = len(stack)
 
-        # # Send message to user who joined to get info about other players
-        # for player in await sync_to_async(list)(Player.objects.filter(Q(game_id=self.game_id))):
-        #     await self.channel_layer.group_send(
-        #         self.game_group_name,
-        #         {
-        #             'type': 'player_info_handler',
-        #             'player_id': player.pk,
-        #             'number_of_cards': await self.get_number_of_cards_in_hand(player.pk),
-        #             'dest': self.player_id,
-        #             'stacked_cards': stacked_cards,
-        #         }
-        #     )
-        #             # Send message to the player with their cards
-        #     await self.channel_layer.group_send(
-        #         self.game_group_name,
-        #         {
-        #             'type': 'give_cards_handler',
-        #             'destination': player.pk,
-        #         }
-        #     )
+        # Send message to user who joined to get info about other players
+        for player in await sync_to_async(list)(Player.objects.filter(Q(game_id=self.game_id))):
+            await self.channel_layer.group_send(
+                self.game_group_name,
+                {
+                    'type': 'player_info_handler',
+                    'player_id': player.pk,
+                    'number_of_cards': await self.get_number_of_cards_in_hand(player.pk),
+                    'dest': self.player_id,
+                    'stacked_cards': stacked_cards,
+                }
+            )
+                    # Send message to the player with their cards
+            await self.channel_layer.group_send(
+                self.game_group_name,
+                {
+                    'type': 'give_cards_handler',
+                    'destination': player.pk,
+                }
+            )
 
         # send new game state to all players
-        await self.send_new_state_to_all_players({
-            'type': 'player_joined'
-        })
+        for player in await sync_to_async(list)(Player.objects.filter(Q(game_id=self.game_id))):
+            await self.channel_layer.group_send(
+                self.game_group_name,
+                {
+                    'type': 'game_state_handler',
+                    'player_id': player.pk,
+                }
+            )
 
         await self.accept()
 
@@ -89,109 +82,91 @@ class GameConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-        await self.send_new_state_to_all_players({
-            'type': 'player_disconnected',
-        })
-
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         action = text_data_json['type']
         game_id = self.scope['url_route']['kwargs']['game_id']
-
-        print(action)
+        
+        logging.warning("curr turn " + str(await self.get_current_turn(game_id)))
+        logging.warning(action)
         if action == 'start_round': # called when the first player places down card(s) and initiates a round
-            try:
-                claimed_card = text_data_json['claimed']
-                cards = text_data_json['cards']
-            except:
-                return
+            claimed_card = text_data_json['claimed']
+            cards = text_data_json['cards']
             await self.start_round(claimed_card, cards)
         if action == 'doubt': # called when a player interrupts game to doubt
             await self.doubt()
         if action == 'place_cards': # called when a player places down card(s)
-            try:
-                cards = text_data_json['cards']
-            except:
-                return
+            cards = text_data_json['cards']
             await self.place_cards(cards)
         
-        # # send new game state to all players
-        # for player in await sync_to_async(list)(Player.objects.filter(Q(game_id=game_id))):
-        #     await self.channel_layer.group_send(
-        #         self.game_group_name,
-        #         {
-        #             'type': 'game_state_handler',
-        #             'player_id': player.pk,
-        #         }
-        #     )
+        # send new game state to all players
+        for player in await sync_to_async(list)(Player.objects.filter(Q(game_id=game_id))):
+            await self.channel_layer.group_send(
+                self.game_group_name,
+                {
+                    'type': 'game_state_handler',
+                    'player_id': player.pk,
+                }
+            )
 
         #logging.warning("new turn " + str(await self.get_current_turn(game_id)))
-        #await self.get_game_state(game_id, self.scope['session']['player_id'])
+        await self.get_game_state(game_id, self.scope['session']['player_id'])
 
     async def start_round(self, claimed_card, cards):
         # Sends claimed card information and saves actually placed cards to db
         game_id = self.scope['url_route']['kwargs']['game_id']
-        player_id = self.scope['session']['player_id']
 
         if await self.is_locked(game_id): # see if someone else got here first
-            print("locked")
+            logging.warning("locked")
             return
 
         # wrong player trying to play
-        if await self.get_current_turn(game_id) != await self.get_player_number(player_id):
-            print("wrong turn")
+        if await self.get_current_turn(game_id) != await self.get_player_number(self.scope['session']['player_id']):
             return
 
         # trying to place 0 cards
         if not len(cards):
-            print("0")
+            logging.warning("trying to place zero cards")
             return
 
         # You can't start two consecutive rounds with the same card
-        if int(claimed_card) == await self.get_current_card(game_id):
-            print("=")
+        if int(claimed_card) == await self.get_current_card(self.scope['url_route']['kwargs']['game_id']):
+            logging.warning("!")
             return
         
-        print("got thru")
         await self.lock_game(game_id) # prevent further action from other players
 
         await self.set_current_card(game_id, claimed_card)
         await self.set_stacked_cards(game_id, cards)
-        await self.remove_from_hand(game_id, player_id, cards)
+        await self.remove_from_hand(game_id, self.scope['session']['player_id'], cards)
         
-        if not await self.get_number_of_cards_in_hand(player_id): # player has no more cards
-            await self.set_winning_player(game_id, await self.get_player_number(player_id))
+        if not await self.get_number_of_cards_in_hand(self.scope['session']['player_id']): # player has no more cards
+            await self.set_winning_player(game_id, await self.get_player_number(self.scope['session']['player_id']))
 
-        event_specifics = { # contains information specific to this type of event that will be used by the client to play the corresponding animations
-            'type': 'cards_placed',
-            'by_who': player_id,
-            'number_of_cards_placed': len(cards), 
-        }
+        # DB WORK HERE
 
-        # old event
-        # await self.channel_layer.group_send(
-        #     self.game_group_name,
-        #     {
-        #         'type': 'start_round_handler',
-        #         'claimed': claimed_card,
-        #         'number': len(cards),
-        #     }
-        # )
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'start_round_handler',
+                'claimed': claimed_card,
+                'number': len(cards),
+            }
+        )
         await self.increment_turn(game_id)
-        await self.send_new_state_to_all_players(event_specifics)
         await self.unlock_game(game_id) # resume normal game flow
     
     async def doubt(self):
+        # Doubts
         game_id = self.scope['url_route']['kwargs']['game_id']
 
         if await self.is_locked(game_id): # see if someone else got here first
-            return
-
-        if await self.get_player_last_turn(game_id) == None or await self.get_last_amount_played(game_id) == 0: # trying to doubt before any card has been placed
+            logging.warning("locked")
             return
 
         if self.scope['session']['player_id'] == await self.get_player_last_turn(game_id): # player doubted themselves
+            logging.warning("doubted themselves")
             return
         
         await self.lock_game(game_id) # prevent further action from other players
@@ -208,50 +183,56 @@ class GameConsumer(AsyncWebsocketConsumer):
             split_card_str = list(card) # split each character
             number = int(card[:-1]) # remaining characters are the number
             claimed_card = await self.get_current_card(game_id)
+            logging.warning("uncovered " + str(number) + ", claimed " + str(claimed_card))
             if(number != claimed_card and number != 14): # 14 is the joker
-                outcome = 1 # success for who doubted
+                outcome = 1
                 break
         
         whole_stack = await self.get_stacked_cards(game_id)
         who_doubted = self.scope['session']['player_id']
-        last_player = await self.get_player_last_turn(game_id) # this is who was doubted
+        last_player = await self.get_player_last_turn(game_id)
 
         if(outcome): # add whole stack to doubted player's hand, and it's now doubter's turn
             await self.add_to_hand(game_id, last_player, whole_stack)
             for i in range(1, 14):
                 if await self.get_amount_of_card_in_hand(last_player, str(i)) == 8: # if they have 8 copies of a card, discard those
                     await self.remove_all_cards(last_player, str(i))
+                    await self.channel_layer.group_send(
+                        self.game_group_name,
+                        {
+                            'type': 'copies_removed_handler',
+                            'from': await self.get_player_number(last_player),
+                        }
+                    )
+                    logging.warning("sent")
             await self.set_new_turn(game_id, await self.get_player_number(who_doubted))
         else: # add whole stack to doubter, and it's now doubted player's turn
             await self.add_to_hand(game_id, who_doubted, whole_stack)
             for i in range(1, 14):
                 if await self.get_amount_of_card_in_hand(who_doubted, str(i)) == 8: # if they have 8 copies of a card, discard those
                     await self.remove_all_cards(who_doubted, str(i))
+                    await self.channel_layer.group_send(
+                        self.game_group_name,
+                        {
+                            'type': 'copies_removed_handler',
+                            'from': await self.get_player_number(who_doubted),
+                        }
+                    )
+                    logging.warning("sent")
             await self.set_new_turn(game_id, await self.get_player_number(last_player))
 
         await self.empty_stacked_cards(game_id)
 
-        event_specifics = {
-            'type': 'doubt',
-            'who_doubted': await self.get_player_name(who_doubted),
-            'who_was_doubted': await self.get_player_name(last_player),
-            'outcome': outcome,
-            'whole_stack': whole_stack,
-        }
-
-        await self.send_new_state_to_all_players(event_specifics)
-
-        # old event
-        # await self.channel_layer.group_send(
-        #     self.game_group_name,
-        #     {
-        #         'type': 'doubt_handler',
-        #         'who_doubted': await self.get_player_number(who_doubted),
-        #         'outcome': outcome, # 0 if failed, 1 if successful for doubter,
-        #         'uncovered_cards': uncovered_cards,
-        #         'whole_stack': whole_stack,
-        #     }
-        # )
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'doubt_handler',
+                'who_doubted': await self.get_player_number(who_doubted),
+                'outcome': outcome, # 0 if failed, 1 if successful for doubter,
+                'uncovered_cards': uncovered_cards,
+                'whole_stack': whole_stack,
+            }
+        )
         
         await self.unlock_game(game_id) # resume normal game flow
 
@@ -259,17 +240,19 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def place_cards(self, cards):
         # Sends amount of cards of alleged type placed and saves actually placed cards to db
         game_id = self.scope['url_route']['kwargs']['game_id']
-        player_id = self.scope['session']['player_id']
         
         if await self.is_locked(game_id): # see if someone else got here first
+            logging.warning("locked")
             return
 
         # wrong player trying to play
         if await self.get_current_turn(game_id) != await self.get_player_number(self.scope['session']['player_id']):
+            logging.warning("wrong turn")
             return
         
         # trying to place 0 cards
         if not len(cards):
+            logging.warning("trying to place zero cards")
             return
         
         await self.lock_game(game_id) # prevent further action from other players
@@ -280,23 +263,14 @@ class GameConsumer(AsyncWebsocketConsumer):
         if not await self.get_number_of_cards_in_hand(self.scope['session']['player_id']): # player has no more cards
             await self.set_winning_player(game_id, await self.get_player_number(self.scope['session']['player_id']))
 
-        # old event
-        # await self.channel_layer.group_send(
-        #     self.game_group_name,
-        #     {
-        #         'type': 'place_cards_handler',
-        #         'number': len(cards),
-        #     }
-        # )
-
-        event_specifics = { # contains information specific to this type of event that will be used by the client to play the corresponding animations
-            'type': 'cards_placed',
-            'by_who': player_id,
-            'number_of_cards_placed': len(cards), 
-        }
-
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'place_cards_handler',
+                'number': len(cards),
+            }
+        )
         await self.increment_turn(game_id)
-        await self.send_new_state_to_all_players(event_specifics)
         await self.unlock_game(game_id) # resume normal game flow
 
 
@@ -307,11 +281,10 @@ class GameConsumer(AsyncWebsocketConsumer):
         if(self.scope['session']['player_id'] != event['player_id']):
             return
         
-        state = await self.get_game_state(self.scope['url_route']['kwargs']['game_id'], event['player_id'])
+        state = await self.get_game_state(self.scope['url_route']['kwargs']['game_id'],event['player_id'])
         await self.send(text_data=json.dumps({
             'type': 'new_state',
             'state': state,
-            'event_specifics': event['event_specifics'],
         }))
 
     async def give_cards_handler(self, event):
@@ -434,11 +407,8 @@ class GameConsumer(AsyncWebsocketConsumer):
         game = Game.objects.get(pk=game_id)
         num = game.player_last_turn
 
-        try:
-            player = Player.objects.get(game_id=game_id, player_number=num)
-            return player.pk
-        except:
-            return None
+        player = Player.objects.get(game_id=game_id, player_number=num)
+        return player.pk
     
     @database_sync_to_async
     def set_new_turn(self, game_id, new_turn): # sets new turn to a given number
@@ -586,12 +556,13 @@ class GameConsumer(AsyncWebsocketConsumer):
                 'name': player.name,
             }
             other_players_list.append(player_data)
+
         state = {
             'current_turn': game.player_current_turn,
             'last_turn': game.player_last_turn,
             'current_card': game.current_card,
             'last_card': game.last_card,
-            'number_of_stacked_cards': len(json.loads(game.stacked_cards)),
+            'number_of_stacked_cards': len(game.stacked_cards.split(",")),
             'last_amount_played': game.last_amount_played,
             'won_by': game.winning_player if game.has_been_won else -1,
             'my_cards': my_cards,

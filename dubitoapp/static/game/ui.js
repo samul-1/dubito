@@ -87,7 +87,7 @@ $(document).ready(function () {
         var $pop = $(this);
         setTimeout(function () {
             $pop.popover('hide');
-        }, 3000);
+        }, 4500);
     });
     $("input[name=card-choice]").attr("disabled", true)
 

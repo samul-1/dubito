@@ -22,6 +22,7 @@ let last_amount = 0
 gameSocket.onmessage = function(e) {
     const data = JSON.parse(e.data)
     const type = data.type
+    console.log("js " +type)
 
     switch(type) {
         case "get_initial_hand":
