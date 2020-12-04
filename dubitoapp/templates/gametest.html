@@ -27,6 +27,11 @@
         <!-- Load Vue followed by BootstrapVue -->
         <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
     </head>
+    <style>
+        html, body {
+            background-image: url("{% static "game/img/wooden-bg.jpeg" %}") !important;
+        }
+    </style>
     <body>
         <script>
             const static_path = "{% static "game" %}/"
