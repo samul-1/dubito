@@ -5,6 +5,8 @@
         <!-- vue.js -->
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.3.0/dist/confetti.browser.min.js"></script>
+
         <link rel="stylesheet" href="{% static "game/style.css" %}" />
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
@@ -14,11 +16,16 @@
         <script src="https://cdn.rawgit.com/nnattawat/flip/master/dist/jquery.flip.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+        <!-- Load required Bootstrap and BootstrapVue CSS -->
+        <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+        <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
 
-        <!-- CDNJS :: Sortable (https://cdnjs.com/) -->
-        <script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
-        <!-- CDNJS :: Vue.Draggable (https://cdnjs.com/) -->
-        <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
+        <!-- Load polyfills to support older browsers -->
+        <script src="//polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver" crossorigin="anonymous"></script>
+
+        <!-- Load Vue followed by BootstrapVue -->
+        <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
     </head>
     <body>
         <script>
@@ -27,25 +34,60 @@
         </script>
         <div style="height:100%" id="app">
             <div class="container-fluid h-100">
-                <div class="row h-20 ui-blue bottom-bordered side-bordered padded">
-                    <div class="col" v-for="player in state.other_players_data" :id=player.number>${ player.name } - (<animated-integer v-bind:value="player.number_of_cards"></animated-integer>) - <span v-if=player.is_online>Online</span> <span v-else>Offline</span><br />
-                        <img :class="{ active_turn: player.number == state.current_turn }" :id=player.number+"_popover" :key=player.number style="width:60px;height:auto" src="{% static "game" %}/img/cards/handcards.png" data-toggle="popover" data-content="Text!!!" data-placement="bottom" />
+                <div v-if="this.won_by != ''" id="overlay">
+                    <div id="overlayed_text"><h1 class="backgrounded-text">🎉 ${ this.won_by } ha vinto! 🎉</h1></div>
+                </div>
+                <div class="row h-20 ui-green bottom-bordered side-bordered padded">
+                    <div style="position: relative" class="col" v-for="player in state.other_players_data" :id=player.number>
+                        <div style="display:inline-block">
+                            <p class="no_margin text-center">
+                                ${ player.name } 
+                                <span v-if=player.is_online>
+                                    <img class="status_icon" src="{% static "game/img/icons/online.png" %}" />
+                                </span> 
+                                <span v-else>
+                                    <img class="status_icon" src="{% static "game/img/icons/offline.png" %}" />
+                                </span>
+                            </p>
+                            <img :class="{ active_turn: player.number == state.current_turn, inactive_turn: player.number != state.current_turn }" :id="`${player.number}_popover`" :key=player.number style="width:65px;height:auto" src="{% static "game" %}/img/cards/handcards.png" />
+                            <b-popover 
+                            :target="`${player.number}_popover`"
+                            triggers="manual"
+                            :placement="'bottom'"
+                            :delay="{show: 0, hide: 4000}"
+                            :no-fade="true"
+                            :ref="`${player.number}_popover_ref`"
+                            >
+                                    <span v-html="texts[player.number]">${ texts[player.number] }</span>
+                            </b-popover>
+                            <span style="position:absolute; top:50%">&nbsp;(<animated-integer v-bind:value="player.number_of_cards"></animated-integer>)</span>
+                        </div>
                     </div>
                 </div>
                 <div class="row h-25 padded overflow-auto">
                         <div class="col col-30">
                             <div style="display:inline-block">
-                                <p class="backgrounded-text">È il turno di <span id="turn_elem">{{ turn_player_name }}</span></span></p>
+                                <p class="backgrounded-text"><span id="turn_elem">${ current_turn_name }</span></span></p>
                                 <p class="backgrounded-text">Carta attuale: <span id="curr_card"><img :src="get_card_icon_url(state.current_card)" class="card_icon" /></span></p>
                             </div>
                         </div>
                         <div class="col col-15">
-                            <p style="padding-left:5px!important;padding-right:5px!important" class="">Reazioni:<br/><button class="btn btn-dark btn">🤣</button> <button class="btn btn-dark btn">🤪</button> <button class="btn btn-dark btn-">😏</button><br /><br /><button class="btn btn-dark btn-">🤨</button> <button class="btn btn-dark btn-">😡</button> <button class="btn btn-dark btn">😭</button></p>
+                            <span style="padding-left:5px!important;padding-right:5px!important" class="">Reazioni:</span>
+                            <table>
+                                <tbody>
+                                <tr>
+                                    <td><button :disabled="!reactions_enabled" @click="send_reaction('laughing')" class="btn btn-dark btn"><img class="reaction_emoji" src="{% static "game/img/emojis/laughing.png" %}" /></button></td> <td><button :disabled="!reactions_enabled" @click="send_reaction('drunk')" class="btn btn-dark btn"><img class="reaction_emoji" src="{% static "game/img/emojis/drunk.png" %}" /></button></td> <td><button :disabled="!reactions_enabled" @click="send_reaction('smirk')" class="btn btn-dark btn-"><img class="reaction_emoji" src="{% static "game/img/emojis/smirk.png" %}" /></button></td>
+                                </tr>
+                                <tr>
+                                    <td><button :disabled="!reactions_enabled" @click="send_reaction('thinking')" class="btn btn-dark btn-"><img class="reaction_emoji" src="{% static "game/img/emojis/thinking.png" %}" /></button></td> <td><button :disabled="!reactions_enabled" @click="send_reaction('angry')" class="btn btn-dark btn-"><img class="reaction_emoji" src="{% static "game/img/emojis/angry.png" %}" /></button></td> <td><button :disabled="!reactions_enabled" @click="send_reaction('crying')" class="btn btn-dark btn"><img class="reaction_emoji" src="{% static "game/img/emojis/crying.png" %}" /></button></td>
+                                </tr>
+                            </tbody>
+                            </table> 
                         </div>
                         <div class="col col-15">
-                            <span style="position:absolute; right: 33.5%" class="no_margin parenthesized" id="stack_number"><animated-integer v-bind:value="state.number_of_stacked_cards"></animated-integer></span><br />
+                            <span style="position:absolute; right: 45%" class="no_margin parenthesized" id="stack_number"><animated-integer v-bind:value="state.number_of_stacked_cards"></animated-integer></span><br />
                             <span style="display:block!important" id="hidden_card"><img style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" /></span>
-                            <span id="card_stack" style="position:absolute; right:25%"><img style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" /></span>
+                            <span id="card_stack" style="position:absolute; right:35%"><img style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" /></span>
                             <div id="stacked_card"> 
                                 <div class="front"> 
                                     <img id="stacked_front" style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" />
@@ -60,11 +102,11 @@
                         </div>
                         <div class="col col-15">
                             <button class="btn btn-lg btn-dark" id="doubt" @click="doubt()">Dubito</button>
-                            <button class="btn btn-lg btn-dark" id="place" :disabled="state.current_turn != this.$my_player_number || !number_of_selected_cards" @click="state.number_of_stacked_cards ? place_cards() : start_round()">Metti giù</button><br /><br />
+                            <button class="btn btn-lg btn-dark" id="place" :disabled="state.current_turn != this.state.my_player_number || !number_of_selected_cards" @click="state.number_of_stacked_cards ? place_cards() : start_round()">Metti giù</button><br /><br />
                             <p class="backgrounded-text">Hai selezionato <strong><span id="n_selected_cards">${ number_of_selected_cards }</span></strong> carte</p><br />
                         </div>
                         <div class="col col-20">
-                            <div v-bind:class="{reminder: state.current_turn == this.$my_player_number && !state.number_of_stacked_cards && claimed == ''}" id="claimed_choice">
+                            <div v-bind:class="{reminder: state.current_turn == this.state.my_player_number && !state.number_of_stacked_cards && claimed == ''}" id="claimed_choice">
                                 <div id="claimed_card_list">
                                     <h5>Quale carta annunci?</h5><hr />
                                     <input v-model="claimed" id="c_1" type="radio" name="card-choice" value="1"> <label for="c_1">Asso</label><br />
@@ -85,11 +127,9 @@
                         </div>
                 </div>
                 <div class="row h-55 top-bordered ui-green side-bordered padded">
-                    <p style="position:absolute;margin-top:-47px;margin-left:-10px">Le mie carte <span class="parenthesized" id="my_card_count"><animated-integer v-bind:value="state.my_cards.length"></animated-integer></span> <span class="btn btn-sm btn-dark" @click="sort_cards()">Ordina</span></p>
+                    <p style="position:absolute;margin-top:-47px;margin-left:-10px">Le mie carte <span class="parenthesized" id="my_card_count"><animated-integer v-bind:value="state.my_cards.length"></animated-integer></span></p>
                     <div id="my_cards">
-                        <draggable v-model="fixed_cards" @start="drag=true" @end="drag=false">
-                            <img :key="`${card.card}${card.deck}`" :class="{ selected: selected_cards.find(c => c.card === card.card && c.deck === card.deck) }" class="selectable card_in_hand" v-for="card in fixed_cards" :src=get_card_url(card.card) @click="toggle_card_selection(card)"/>
-                        </draggable>
+                        <img :key="`${card.card}${card.deck}`" :class="{ selected: selected_cards.find(c => c.card === card.card && c.deck === card.deck) }" class="selectable card_in_hand" v-for="card in fixed_cards" :src=get_card_url(card.card) @click="toggle_card_selection(card)"/>
                     </div>
                 </div>
             </div>
@@ -100,6 +140,9 @@
                         <h5 id="player_doubted_title" class="modal-title"></h5>
                     </div>
                     <div id="doubt_outcome">
+                        <h1 class="ml1" class="modal-title">
+                            ${ outcome_text }
+                        </h1>
                     </div>
                     <div style="text-align:center" id="stack_modal_body" class="modal-body">
                         <div v-for="card in uncovered_stack" class="card-grid flip_card"> 
@@ -117,8 +160,8 @@
             <div id="card_choice_modal" class="modal" tabindex="-1" role="dialog">
                 <div class="modal-dialog" style="max-width:1000px" role="document">
                   <div class="modal-content stack-modal-content">
-                    <div class="modal-header" style="border:0!important;background-color:transparent">
-                        <h1 class="ml1" id="card_choice_title" class="modal-title">
+                    <div class="modal-header text-center" style="border:0!important;background-color:transparent">
+                        <h1 class="ml1"class="modal-title">
                             <span class="text-wrapper">
                               <span class="line line1"></span>
                               <span class="letters">Tocca a te!<br /> Scegli la carta da annunciare</span>
@@ -132,9 +175,9 @@
         </div>
         <script>
             const game_id = {{ game_id }}
-            Vue.prototype.$my_player_number = {{ player_num }}
+            // Vue.prototype.$my_player_number = {{ player_num }}
         </script>
-        <script src="{% static "game/vuefrontend.js" %}"></script>
         <script src="{% static "game/newui.js" %}"></script>
+        <script src="{% static "game/vuefrontend.js" %}"></script>
     </body>
 </html>

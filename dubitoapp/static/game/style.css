@@ -9,6 +9,28 @@ html, body {
     color: white !important;
 }
 
+#overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.9);
+  z-index: 9;
+}
+
+#overlayed_text{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 50px;
+  color: white;
+  transform: translate(-50%,-50%);
+  -ms-transform: translate(-50%,-50%);
+}
+
 .card_in_hand {
     width: 65px;
     height: auto;
@@ -18,7 +40,7 @@ html, body {
     margin-right: 4px;
 }
 
-/* make cards bigger on phone */
+/* make cards bigger on mobile */
 @media only screen and (max-width: 1068px) {
   .card_in_hand {
     width: 80px;
@@ -105,13 +127,11 @@ button {
     border-left: 1px solid black;
     border-right: 1px solid black;
     border-radius: 2px;
-
-
 }
 
 #stacked_card {
     position: absolute !important;
-    right: 25%;
+    right: 35%;
 }
 
 #claimed_choice {
@@ -143,7 +163,7 @@ button {
 #hidden_card {
     opacity: 0;
     position: absolute;
-    right: 60%;
+    right: 72.5%;
     z-index: 3;
 }
 
@@ -293,8 +313,8 @@ button {
     animation: border-pulsate 1s infinite;
 }
 
-.active_turn::after {
-  content: 'sdf';
+.inactive_turn {
+  border: 4px solid transparent;
 }
 
 /* select card reminder animation */
@@ -353,13 +373,13 @@ button {
       font-size: 1.5em
   }
 
-  .ui-blue {
+  /* .ui-blue {
       background-color: #02396C;
       background-image: url("https://img.freepik.com/free-vector/poker-table-background-blue-color_47243-1095.jpg?size=626&ext=jpg");
       color: white;
       background-size: cover;
 
-  }
+  } */
 
   .ui-green {
       background-color: #348104;
@@ -393,7 +413,7 @@ button {
 
   /* loader */
 
-  .loader,
+  /* .loader,
 .loader:before,
 .loader:after {
   border-radius: 50%;
@@ -449,4 +469,25 @@ button {
   40% {
     box-shadow: 0 2.5em 0 0;
   }
+} */
+
+.reaction_emoji {
+  width: 25px;
+  height: auto;
+}
+
+.animated_emoji {
+  width: 80px;
+  height: auto;
+}
+
+.centered {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.status_icon {
+  width: 15px;
+  height: auto;
 }

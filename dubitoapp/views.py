@@ -72,7 +72,7 @@ def join_game(request):
         try:
             game = Game.objects.get(code=game_id)
         except:
-            return HttpResponse("Game doesn't exist")
+            return render(request, 'error.html', { 'error': "Il codice inserito non è valido." })
 
         if(game.joined_players < game.number_of_players):
             # create player and append it to this game
@@ -85,9 +85,8 @@ def join_game(request):
             game.joined_players = game.joined_players + 1
             game.save()
 
-            # create new session to allow the user to play the game
+            # create new session to allow user to play
             request.session['player_id'] = new_player.pk
-            logging.warning(request.session.items())
 
             if(new_player.player_number == game.number_of_players): # if this is the last player
                 # we now have all the profiles of the players, so we can:
@@ -141,24 +140,27 @@ def check_session(request):
         return HttpResponse("who are you?")
 
 def game(request, game_id):
+    err_str = ''
     try: # check if requested game exists
         this_game = Game.objects.get(pk=game_id)
     except:
-        return HttpResponse("Specified game doesn't exist")
+        err_str = "La partita richiesta non esiste o si è già conclusa."
     
     # get players who joined this game
     players = Player.objects.filter(game_id=game_id)
 
     if('player_id' not in request.session): # check if user has a session variable player_id
-        return HttpResponse("Unauthenticated user")
+        err_str = "Unauthenticated user"
     
     try: # check if there is a user with id equal to the one in the session variable
         this_player = Player.objects.get(pk=request.session['player_id'])
+        if(this_player not in players): # check if this player has joined the game
+            err_str = "La partita richiesta non esiste o si è già conclusa."
     except:
-        return HttpResponse("Player doesn't exist")
-
-    if(this_player not in players): # check if this player has joined the game
-        return HttpResponse("You don't have access to this game")
+        err_str = "Player doesn't exist"
+    
+    if err_str != '':
+        return render(request, 'error.html', { 'error': err_str })
 
     try:
         turn_player_name = Player.objects.get(Q(game_id=this_game) & Q(player_number=this_game.player_current_turn)).name
