@@ -1,2 +1,2 @@
 release: python manage.py migrate
-web: gunicorn myapp.wsgi --log-file -
+web: gunicorn dubito.wsgi --log-file -
