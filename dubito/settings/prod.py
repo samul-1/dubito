@@ -10,7 +10,7 @@ DATABASES = {
 }
 
 MIDDLEWARE = ["whitenoise.middleware.WhiteNoiseMiddleware"] + MIDDLEWARE
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+#STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 WHITENOISE_MAX_AGE = 604800 * 2  # 2 weeks
 
 SECRET_KEY = "ia^692&z(ubz(hydgff_=@lc0z^d_b0zpni^ucx4p2k4y@z1as"
