@@ -5,6 +5,7 @@ import random
 
 class Game(models.Model):
     code = models.IntegerField()
+    timestamp = models.DateTimeField(auto_now=True)
     number_of_players = models.IntegerField()
     joined_players = models.IntegerField(default=1)
     player_current_turn = models.IntegerField(null=True)
