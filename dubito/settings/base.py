@@ -126,7 +126,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname((os.p
 # os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.path.join(PROJECT_DIR, 'staticfiles')
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'dubitoapp/static/')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'dubitoapp/static/game')]
 
 ASGI_APPLICATION = "dubito.routing.application"
 
