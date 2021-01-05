@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Game, Player, CardsInHand, Feedback
 
 class GameAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'code', 'number_of_players', 'joined_players', 'player_current_turn', 'player_last_turn')
+    list_display = ('pk', 'code', 'number_of_players', 'timestamp', 'joined_players', 'player_current_turn', 'player_last_turn')
 
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ('game_id', 'name', 'player_number', 'pk')
