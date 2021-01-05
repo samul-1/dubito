@@ -18,8 +18,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", None)
 ALLOWED_HOSTS = ["dubito.herokuapp.com", "playdubito.com", "www.playdubito.com"]
 
 # force https on heroku
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = True
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# SECURE_SSL_REDIRECT = True
 
 LOGGING = {
     "version": 1,
