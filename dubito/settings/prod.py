@@ -10,10 +10,10 @@ DATABASES = {
 }
 
 MIDDLEWARE = ["whitenoise.middleware.WhiteNoiseMiddleware"] + MIDDLEWARE
-#STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 WHITENOISE_MAX_AGE = 604800 * 2  # 2 weeks
 
-SECRET_KEY = "ia^692&z(ubz(hydgff_=@lc0z^d_b0zpni^ucx4p2k4y@z1as"
+SECRET_KEY = os.environ.get("SECRET_KEY", None)
 
 ALLOWED_HOSTS = ["dubito.herokuapp.com"]
 
@@ -26,6 +26,6 @@ LOGGING = {
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "loggers": {
-        "django": {"handlers": ["console"], "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),}
+        "django": {"handlers": ["console"], "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"), }
     },
 }

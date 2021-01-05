@@ -21,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'ia^692&z(ubz(hydgff_=@lc0z^d_b0zpni^ucx4p2k4y@z1as'
+SECRET_KEY = os.environ.get("SECRET_KEY", None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ['127.0.0.1', 'd6c6457b73a3.ngrok.io']
+# ALLOWED_HOSTS = ['127.0.0.1', '25f188fc070a.ngrok.io']
 
 
 # Application definition
@@ -121,7 +121,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/game/static/'
-PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))#os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+# os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.path.join(PROJECT_DIR, 'staticfiles')
 
 ASGI_APPLICATION = "dubito.routing.application"

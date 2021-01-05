@@ -22,7 +22,7 @@
             </nav>
             <div style="text-align: center" class="container" id="main_container">
                 <h1>Crea partita</h1><br />
-                <form action="/game/create_game" method="post">
+                <form action="/game/create" method="post">
                     {% csrf_token %}
                     {{ form.as_p }}
                     <input class="btn btn-dark" type="submit" value="Crea partita">

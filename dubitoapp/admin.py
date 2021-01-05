@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Game, Player, CardsInHand
+from .models import Game, Player, CardsInHand, Feedback
 
 class GameAdmin(admin.ModelAdmin):
     list_display = ('pk', 'code', 'number_of_players', 'joined_players', 'player_current_turn', 'player_last_turn')
@@ -10,6 +10,11 @@ class PlayerAdmin(admin.ModelAdmin):
 class CardsInHandAdmin(admin.ModelAdmin):
     list_display = ('player_id', 'card_seed', 'card_number', 'pk')
 
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'sender_name', 'email', 'message', 'timestamp')
+
+
 admin.site.register(Game, GameAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(CardsInHand, CardsInHandAdmin)
+admin.site.register(Feedback, FeedbackAdmin)

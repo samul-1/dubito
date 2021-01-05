@@ -65,7 +65,7 @@
                             <img id="stacked_front" style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" />
                         </div> 
                         <div class="back">
-                            <img id="stacked_back" style="width:70px;height:auto" src="{% static "game/img/cards/red_back.png" %}" />
+                            <img id="stacked_back" style="width:70px;height:auto;" src="{% static "game/img/cards/red_back.png" %}" />
                         </div> 
                     </div>
                     <div style="position:absolute; right:0; display:none; z-index:0" id="hidden_uncovered_card_div">
@@ -73,7 +73,7 @@
                     </div>
                 </div>
                 <div class="col col-15">
-                    <button class="btn btn-lg btn-dark" id="doubt">Dubito</button>
+                    <button class="btn btn-lg btn-dark" id="doubt">Dubito!</button>
                     <button class="btn btn-lg btn-dark" id="place">Metti giù</button><br /><br />
                     <p class="backgrounded-text">Hai selezionato <strong><span id="n_selected_cards">0</span></strong> carte</p><br />
                 </div>
@@ -202,6 +202,8 @@
         let last_turn = {{ last_turn }}
         const static_path = "{% static "game" %}/"
         const static_path_to_card_img = static_path + "img/cards/"
+        const flipped_sound = static_path + "sound/flipped.mp3"
+        const placed_sound = static_path + "sound/placed.mp3"
         let current_card = {{ current_card }}
         let last_card = {{ last_card }}
 
