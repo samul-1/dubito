@@ -111,10 +111,12 @@ let vue = new Vue({
     const self = this
     gameSocket.onmessage = function (e) {
       data = JSON.parse(e.data)
-      console.log(data)
+      // console.log(data)
       // transfer received state to buffer
-      self.state_buffer = data.state
       event_type = data.event_specifics.type
+      if(event_type != "reaction") {
+        self.state_buffer = data.state
+      }
       switch (event_type) {
         case "round_start":
         case "cards_placed":
@@ -130,7 +132,7 @@ let vue = new Vue({
           }
           break
         case "doubt":
-          console.log(data.event_specifics)
+          // console.log(data.event_specifics)
           if (data.event_specifics.who_doubted_number != data.my_player_number) {
             self.set_player_text(data.event_specifics.who_doubted_number, false, "Dubito!")
           }
@@ -244,7 +246,7 @@ let vue = new Vue({
       
       // if player has a popover already shown, reset its hide timer
       let open = this.open_popovers.findIndex(p => p.component === idx_str)
-      console.log(idx_str)
+      // console.log(idx_str)
 
       if(open != -1) {
         window.clearTimeout(this.open_popovers[open].handle)
