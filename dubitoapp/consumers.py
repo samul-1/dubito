@@ -314,6 +314,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 }
                 await self.send_new_state_to_all_players(event_specifics)
                 await self.set_game_has_been_won(self.game_id)
+                await self.lock_game(self.game_id)
             else:
                 # if player now has more than 0 cards, they aren't eligible for winning anymore
                 await self.set_winning_player(self.game_id, -1)

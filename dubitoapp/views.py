@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Game, Player, CardsInHand, Feedback
 from django.db.models import Q
 from .forms import GameForm, JoinForm, FeedbackForm
@@ -100,6 +100,10 @@ def join_game(request):
 def game(request, game_id):
     err_str = ''
     this_game = get_object_or_404(Game, pk=game_id)
+
+    # if game is over, redirect to home
+    if this_game.has_been_won:
+        return redirect(create_new_game)
 
     # get players who joined this game
     players = Player.objects.filter(game_id=game_id)
