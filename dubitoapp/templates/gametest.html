@@ -29,7 +29,6 @@
 
         <!-- Progressive image rendering -->
         <script src="https://cdn.jsdelivr.net/npm/progressively/dist/progressively.min.js"></script>
-    </head>
     <style>
         html, body {
             background-color: #422622;
@@ -76,6 +75,10 @@
         {% endif %}
         }
     </style>
+    <link rel="shortcut icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
+    <title>Dubito!</title>
+    </head>
     <body>
         <script>
             const static_path = "{% static "game" %}/"
