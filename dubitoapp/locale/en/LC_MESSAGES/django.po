@@ -1,0 +1,307 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-01-10 16:41+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: dubitoapp/templates/gametest.html:110
+msgid "ha vinto"
+msgstr "won"
+
+#: dubitoapp/templates/gametest.html:167
+msgid "Carta attuale"
+msgstr "Current card"
+
+#: dubitoapp/templates/gametest.html:171
+msgid "Reazioni"
+msgstr "Reactions"
+
+#: dubitoapp/templates/gametest.html:235
+msgid "Metti giù"
+msgstr "Put down"
+
+#: dubitoapp/templates/gametest.html:248
+msgid "Scrivi qualcosa..."
+msgstr "Type something..."
+
+#: dubitoapp/templates/gametest.html:269
+msgid "Annuncerai"
+msgstr "You'll announce"
+
+#: dubitoapp/templates/gametest.html:274
+msgid "Cambia"
+msgstr "Change"
+
+#: dubitoapp/templates/gametest.html:281 dubitoapp/templates/newhome.html:190
+msgid "Quale carta annunci?"
+msgstr "Which card will you announce?"
+
+#: dubitoapp/templates/gametest.html:282
+msgid "Asso"
+msgstr "Ace"
+
+#: dubitoapp/templates/gametest.html:348
+msgid "Tocca a te! Scegli la carta da annunciare"
+msgstr "It's your turn! Pick a card to announce"
+
+#: dubitoapp/templates/newhome.html:59 dubitoapp/templates/newhome.html:93
+#: dubitoapp/templates/newhome.html:108 dubitoapp/templates/newhome.html:170
+msgid "Crea partita"
+msgstr "New game"
+
+#: dubitoapp/templates/newhome.html:66 dubitoapp/templates/newhome.html:130
+#: dubitoapp/templates/newhome.html:180
+msgid "Unisciti a una partita"
+msgstr "Join game"
+
+#: dubitoapp/templates/newhome.html:74 dubitoapp/templates/newhome.html:159
+msgid "Come si gioca?"
+msgstr "How to play?"
+
+#: dubitoapp/templates/newhome.html:82 dubitoapp/templates/newhome.html:212
+msgid "Contattaci"
+msgstr "Contact us"
+
+#: dubitoapp/templates/newhome.html:100
+msgid "Numero di giocatori"
+msgstr "Numer of players"
+
+#: dubitoapp/templates/newhome.html:104 dubitoapp/templates/newhome.html:143
+msgid "Scegli un nome"
+msgstr "Your name"
+
+#: dubitoapp/templates/newhome.html:112
+msgid "Partita creata con successo! Il codice partita è"
+msgstr "Your game was successfully created! Its game code is"
+
+#: dubitoapp/templates/newhome.html:114
+msgid "Comunicalo agli altri giocatori per iniziare a giocare."
+msgstr "Send that to the other players to begin playing."
+
+#: dubitoapp/templates/newhome.html:115
+msgid ""
+"La partita inizierà non appena tutti i giocatori saranno entrati. Attendiamo"
+msgstr ""
+"Game will automatically begin as soon as the other players have joined. Hold "
+"on"
+
+#: dubitoapp/templates/newhome.html:117
+msgid "Giocatori entrati"
+msgstr "Joined players"
+
+#: dubitoapp/templates/newhome.html:139
+msgid "Codice partita"
+msgstr "Game code"
+
+#: dubitoapp/templates/newhome.html:147
+msgid "Entra"
+msgstr "Join"
+
+#: dubitoapp/templates/newhome.html:168
+msgid "Come creare una partita"
+msgstr "How to start a new game"
+
+#: dubitoapp/templates/newhome.html:170 dubitoapp/templates/newhome.html:180
+msgid "Clicca su"
+msgstr "Click"
+
+#: dubitoapp/templates/newhome.html:171
+msgid "Scegli il numero di giocatori"
+msgstr "Select the number of players"
+
+#: dubitoapp/templates/newhome.html:171
+msgid "(da 2 a 6)"
+msgstr "(2 to 6)"
+
+#: dubitoapp/templates/newhome.html:172
+msgid "Scegli il tuo nome e conferma"
+msgstr "Pick a name and confirm"
+
+#: dubitoapp/templates/newhome.html:173
+msgid ""
+"Comunica agli altri giocatori il codice a 5 cifre che appare sullo schermo e "
+"attendi!"
+msgstr "Tell the other players the 5-digit code on your screen and sit tight!"
+
+#: dubitoapp/templates/newhome.html:177
+msgid "Come entrare in una partita"
+msgstr "How to join a game"
+
+#: dubitoapp/templates/newhome.html:179
+msgid "Ottieni il codice di 5 cifre dal creatore della partita"
+msgstr "Get the 5-digit game code from the player who started the game"
+
+#: dubitoapp/templates/newhome.html:181
+msgid "Inserisci il codice partita e scegli un nome"
+msgstr "Input your game code and pick a name"
+
+#: dubitoapp/templates/newhome.html:187
+msgid "Regole del gioco"
+msgstr "Game rules"
+
+#: dubitoapp/templates/newhome.html:189
+msgid ""
+"Il primo giocatore sceglie con quale carta iniziare il giro selezionandola "
+"dal menu"
+msgstr ""
+"The first player chooses a card to start the turn with by selecting it from "
+"the pop-up menu titled"
+
+#: dubitoapp/templates/newhome.html:190
+msgid "poi sceglie una o più carte da mettere giù."
+msgstr "then they select one or more cards to place down."
+
+#: dubitoapp/templates/newhome.html:193
+msgid ""
+"Durante il tuo turno, dovrai mettere giù una o più carte del tipo "
+"selezionato dal primo giocatore."
+msgstr ""
+"During your turn, you'll have to place down one or more cards with number "
+"(or letter) equal to that choesn by the first player."
+
+#: dubitoapp/templates/newhome.html:194
+msgid "Ricorda che puoi mentire"
+msgstr "You can also lie"
+
+#: dubitoapp/templates/newhome.html:194
+msgid "e mettere giù qualsiasi carta!"
+msgstr "and place down any card!"
+
+#: dubitoapp/templates/newhome.html:197
+msgid "Un giocatore può"
+msgstr "A player can"
+
+#: dubitoapp/templates/newhome.html:197
+msgid "dubitare"
+msgstr "doubt"
+
+#: dubitoapp/templates/newhome.html:197
+msgid "dell'ultimo che ha messo giù carte. Cliccando su"
+msgstr "the last one who placed cards down. By clicking"
+
+#: dubitoapp/templates/newhome.html:197
+msgid "Dubito!"
+msgstr "Dubito!"
+
+#: dubitoapp/templates/newhome.html:198
+msgid ""
+"vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva "
+"mentito, riprenderà tutte le carte che sono giù,"
+msgstr ""
+"you will reveal the last cards that were placed on the pile. If the previous "
+"player lied, they will take back all the cards on the table,"
+
+#: dubitoapp/templates/newhome.html:199
+msgid ""
+"altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da "
+"chi dei due ha vinto lo scontro."
+msgstr ""
+"otherwise you'll take them all back in your hand. The player who won the "
+"round will resume playing first."
+
+#: dubitoapp/templates/newhome.html:219
+msgid ""
+"Hai trovato un bug nel gioco, oppure vuoi lasciare un feedback? Sei nel "
+"posto giusto!"
+msgstr ""
+"Did you find a bug in the game? Or maybe you want to send us some feedback? "
+"You're in the right place!"
+
+#: dubitoapp/templates/newhome.html:222
+msgid "Il tuo nome"
+msgstr "Your name"
+
+#: dubitoapp/templates/newhome.html:226
+msgid "Indirizzo email"
+msgstr "Your email address"
+
+#: dubitoapp/templates/newhome.html:227
+msgid "(opzionale, se vuoi essere ricontattato)"
+msgstr "(optional, if you want to be contacted back)"
+
+#: dubitoapp/templates/newhome.html:231
+msgid "Messaggio"
+msgstr "Your message"
+
+#: dubitoapp/templates/newhome.html:235
+msgid "Invia"
+msgstr "Submit"
+
+#: dubitoapp/templates/newhome.html:239
+msgid "Il tuo messaggio è stato registrato con successo. Grazie!"
+msgstr "Your message was successfully registered. Thank you!"
+
+#: dubitoapp/templates/newhome.html:241
+msgid "Chiudi"
+msgstr "Close"
+
+#: dubitoapp/validators.py:13
+msgid "La partita è al completo."
+msgstr "This game already began."
+
+#: dubitoapp/validators.py:15
+msgid "Partita non trovata."
+msgstr "Couldn't find a game with matching code."
+
+#: dubitoapp/validators.py:22
+msgid "I giocatori devono essere da 2 a 6."
+msgstr "Players must be between 2 and 6."
+
+msgid "ha dubitato correttamente"
+msgstr "was right"
+
+msgid "ha sbagliato"
+msgstr "was wrong"
+
+msgid "ha tutte e 8 le copie di "
+msgstr "had all the copies of "
+
+msgid "quindi le scarta"
+msgstr "so they discarded them"
+
+msgid "Hai selezionato la bellezza di "
+msgstr "You selected as much as "
+
+msgid " carte. Sei sicuro di volerle mettere giù?"
+msgstr " cards. Are you sure you want to place them down?"
+
+msgid "È il turno di %s"
+msgstr "It's %s's turn"
+
+msgid "È il mio turno"
+msgstr "It's my turn"
+
+msgid "Campo richiesto."
+msgstr "This field is required."
+
+msgid "Il codice partita dev'essere esattamente di 5 cifre."
+msgstr "Game code needs to be exactly 5 digits long."
+
+msgid "Le mie carte"
+msgstr "My cards"
+
+msgid "Attendi che gli altri giocatori entrino"
+msgstr "Waiting for the other players to join"
+
+msgid "ha chiesto di giocare ancora"
+msgstr "asked to play again"
+
+msgid "Gioca ancora"
+msgstr "Play again"
+
+msgid "Gioca"
+msgstr "Play"

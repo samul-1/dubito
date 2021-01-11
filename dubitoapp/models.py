@@ -28,6 +28,21 @@ class Game(models.Model):
         # randomly choose who will go first
         self.player_current_turn = random.randint(1, self.number_of_players)
 
+    def reset(self):  # resets game for replaying
+        players = Player.objects.filter(game_id=self)
+        CardsInHand.objects.filter(player_id__in=players).delete()
+
+        self.player_current_turn = random.randint(1, self.number_of_players)
+        self.winning_player = -1
+        self.has_been_won = False
+        self.current_card = 0
+        self.stacked_cards = "[]"
+        self.last_amount_played = 0
+        self.locked = False
+        self.player_last_turn = -1
+        self.joined_players = 0
+        self.save()
+
     def deal_cards_to_players(self):  # called after all players have joined; deals each player their hand of cards
         # generate the deck of cards and shuffle it
         deck = [
@@ -70,7 +85,8 @@ class Player(models.Model):
     player_number = models.IntegerField(default=1)
     name = models.CharField(max_length=10)
     is_online = models.BooleanField(default=False)
-    has_left = models.BooleanField(default=False) # True if the user still isn't online when their turn comes
+    has_left = models.BooleanField(default=False) # True if player still isn't online when their turn comes
+    rejoined = models.BooleanField(default=True) # True if player has rejoined the game once it's restarted
 
     def __str__(self):
         return str(self.pk)

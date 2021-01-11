@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+{% load i18n %}
+<html>
   <head>
       <!-- Global site tag (gtag.js) - Google Analytics -->
       <script async src="https://www.googletagmanager.com/gtag/js?id=G-8CBFR5FWBQ"></script>
@@ -11,9 +12,12 @@
         gtag('config', 'G-8CBFR5FWBQ');
       </script>
       {% load static %}
+      <!-- Translation -->
+      <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+      
       <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       <meta name="description" content="La prima app per giocare online a Dubito!" />
-      <meta name="keywords" content="carte, gioco di carte, dubito, dubito online, gratis, giochi di carte online, giochi gratis, giochi online, poker, card game, asso, scala, casino, carta, playing card game, playing card, cards, carte da gioco, carta da gioco, browser game, online game, multiplayer, partita">
+      <meta name="keywords" content="carte, gioco di carte, dubito, dubito online, gratis, giochi di carte online, giochi gratis, giochi online, poker, card game, asso, scala, casino, carta, playing card game, playing card, cards, carte da gioco, carta da gioco, browser game, online game, multiplayer, partita, bluff, balle">
       
       <link rel="shortcut icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
       <link rel="icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
@@ -52,14 +56,14 @@
             <div class="col-12 col-lg-5">
                 <button type="button" class="btn btn-red btn-bordered btn-90-width btn-vertically-padded" data-toggle="modal" data-target="#createModal">
                     <h3>
-                        <i class="fas fa-plus-circle"></i> &nbsp;Crea partita
+                        <i class="fas fa-plus-circle"></i> &nbsp;{% trans 'Crea partita' %}
                     </h3>
                 </button>
             </div>
             <div class="col-12 col-lg-5">
                 <button type="button" class="btn btn-red btn-bordered btn-90-width btn-vertically-padded" data-toggle="modal" data-target="#joinModal">
                     <h3>
-                        <i class="fas fa-user-plus"></i> &nbsp;Unisciti a una partita
+                        <i class="fas fa-user-plus"></i> &nbsp;{% trans 'Unisciti a una partita' %}
                     </h3>
                 </button> 
             </div>
@@ -67,7 +71,7 @@
         <div class="row" id="row3">
           <div class="mb-10 col align-self-start">
             <button type="button" class="btn btn-red btn-bordered" data-toggle="modal" data-target="#instructionsModal">
-              <i class="fas fa-question-circle"></i> &nbsp;Come si gioca?
+              <i class="fas fa-question-circle"></i> &nbsp;{% trans 'Come si gioca?' %}
             </button>
           </div>
           <div class="col-8 align-self-center">
@@ -75,7 +79,7 @@
           </div>
           <div class="mb-10 col align-self-end">
             <button type="button" class="btn btn-red btn-bordered" data-toggle="modal" data-target="#feedbackModal">
-              <i class="fas fa-comments"></i> &nbsp;Contattaci
+              <i class="fas fa-comments"></i> &nbsp;{% trans 'Contattaci' %}
             </button>
           </div>
         </div>
@@ -86,31 +90,31 @@
       <div class="modal-dialog modal-dialog-centered to modal-lg role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
-            <h1 class="modal-title" id="joinModalLabel">Crea partita</h1>
+            <h1 class="modal-title" id="joinModalLabel">{% trans 'Crea partita' %}</h1>
           </div>
           <div class="modal-body modal-padded text-center">
             <div id="phase1">
               <form action="/game/create" method="post">
                   {% csrf_token %}
                   <!--{{ form.as_p }}-->
-                  <h2>Numero di giocatori</h2>
+                  <h2>{% trans 'Numero di giocatori' %}</h2>
                   <p>
                     {{ create_form.number_of_players }}
                   </p>
-                  <h2>Scegli un nome</h2>
+                  <h2>{% trans 'Scegli un nome' %}</h2>
                   <p>
                     {{ create_form.creator_name }}
                   </p>
-                  <input onclick="createSubmit(event)" class="btn btn-red" type="submit" value="Crea partita">
+                  <input onclick="createSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Crea partita' %}">
               </form>
             </div>
             <div id="phase2">
-              <h3>Partita creata con successo! Il codice partita è</h3>
+              <h3>{% trans 'Partita creata con successo! Il codice partita è' %}</h3>
               <span id="gamecode" class="big"></span>
-              <h3>Comunicalo agli altri giocatori per iniziare a giocare.</h3>
-              <p>La partita inizierà non appena tutti i giocatori saranno entrati. Attendiamo<span id="animatedEllipsis">&nbsp;&nbsp;&nbsp;</span></p>
+              <h3>{% trans 'Comunicalo agli altri giocatori per iniziare a giocare.' %}</h3>
+              <p>{% trans 'La partita inizierà non appena tutti i giocatori saranno entrati. Attendiamo' %}<span id="animatedEllipsis">&nbsp;&nbsp;&nbsp;</span></p>
               <div>
-                <p>Giocatori entrati <span id="user_count">1</span>/<span id="total_users"></span></p>
+                <p>{% trans 'Giocatori entrati' %} <span id="user_count">1</span>/<span id="total_users"></span></p>
               </div>
             </div>
           </div>
@@ -123,7 +127,7 @@
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
-            <h1 class="modal-title" id="joinModalLabel">Unisciti a una partita</h1>
+            <h1 class="modal-title" id="joinModalLabel">{% trans 'Unisciti a una partita' %}</h1>
             <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button> -->
@@ -132,15 +136,15 @@
             <form action="/game/join_game" method="post">
                 {% csrf_token %}
                 <!--{{ join_form.as_p }}-->
-                <h2>Codice partita</h2>
+                <h2>{% trans 'Codice partita' %}</h2>
                 <p>
                   {{ join_form.code }}
                 </p>
-                <h2>Scegli un nome</h2>
+                <h2>{% trans 'Scegli un nome' %}</h2>
                 <p>
                   {{ join_form.name }}
                 </p>
-                <input onclick="joinSubmit(event)" class="btn btn-red" type="submit" value="Entra">
+                <input onclick="joinSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Entra' %}">
             </form>
           </div>
         </div>
@@ -152,7 +156,7 @@
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
-            <h1 class="modal-title" id="joinModalLabel">Come si gioca?</h1>
+            <h1 class="modal-title" id="joinModalLabel">{% trans 'Come si gioca?' %}</h1>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -161,38 +165,38 @@
             <div class="section">
               <div class="row">
                 <div class="col-12 col-lg-6">
-                  <h2>Come creare una partita</h2>
+                  <h2>{% trans 'Come creare una partita' %}</h2>
                   <ol>
-                    <li>Clicca su <em>Crea partita</em></li>
-                    <li>Scegli il numero di giocatori (da 2 a 6)</li>
-                    <li>Scegli il tuo nome e conferma</li>
-                    <li>Comunica agli altri giocatori il codice a 5 cifre che appare sullo schermo e attendi!</li>
+                    <li>{% trans 'Clicca su' %} <em>{% trans 'Crea partita' %}</em></li>
+                    <li>{% trans 'Scegli il numero di giocatori' %} {% trans '(da 2 a 6)' %}</li>
+                    <li>{% trans 'Scegli il tuo nome e conferma' %}</li>
+                    <li>{% trans 'Comunica agli altri giocatori il codice a 5 cifre che appare sullo schermo e attendi!' %}</li>
                   </ol>
                 </div>
                 <div class="col-12 col-lg-6">
-                  <h2>Come entrare in una partita</h2>
+                  <h2>{% trans 'Come entrare in una partita' %}</h2>
                   <ol>
-                    <li>Ottieni il codice di 5 cifre dal creatore della partita</li>
-                    <li>Clicca su <em>Unisciti a una partita</em></li>
-                    <li>Inserisci il codice partita e scegli un nome</li>
+                    <li>{% trans 'Ottieni il codice di 5 cifre dal creatore della partita' %}</li>
+                    <li>{% trans 'Clicca su' %} <em>{% trans 'Unisciti a una partita' %}</em></li>
+                    <li>{% trans 'Inserisci il codice partita e scegli un nome' %}</li>
                   </ol>
                 </div>
               </div>
             </div>
             <div class="section">
-              <h2>Regole del gioco</h2>
+              <h2>{% trans 'Regole del gioco' %}</h2>
               <p>
-                Il primo giocatore sceglie con quale carta iniziare il giro selezionandola dal menu
-                <em>Quale carta annunci?</em>, poi sceglie una o più carte da mettere giù.
+                {% trans 'Il primo giocatore sceglie con quale carta iniziare il giro selezionandola dal menu' %}
+                <em>{% trans 'Quale carta annunci?' %}</em>, {% trans 'poi sceglie una o più carte da mettere giù.' %}
               </p>
               <p>
-                Durante il tuo turno, dovrai mettere giù una o più carte del tipo selezionato dal primo giocatore.
-                <strong>Ricorda che puoi mentire</strong> e mettere giù qualsiasi carta!
+                {% trans 'Durante il tuo turno, dovrai mettere giù una o più carte del tipo selezionato dal primo giocatore.' %}
+                <strong>{% trans 'Ricorda che puoi mentire' %}</strong> {% trans 'e mettere giù qualsiasi carta!' %}
               </p>
               <p>
-                Un giocatore può <strong>dubitare</strong> dell'ultimo che ha messo giù carte. Cliccando su <em>Dubito!</em>
-                vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva mentito, riprenderà tutte le carte che sono giù,
-                altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da chi dei due ha vinto lo scontro.
+                {% trans 'Un giocatore può' %} <strong>{% trans 'dubitare' %}</strong> {% trans "dell'ultimo che ha messo giù carte. Cliccando su" %} <em>{% trans 'Dubito!' %}</em>
+                {% trans 'vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva mentito, riprenderà tutte le carte che sono giù,' %}'
+                {% trans 'altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da chi dei due ha vinto lo scontro.' %}
               </p>
             </div>
           </div>
@@ -205,36 +209,36 @@
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
-            <h1 class="modal-title" id="joinModalLabel">Contattaci</h1>
+            <h1 class="modal-title" id="joinModalLabel">{% trans 'Contattaci' %}</h1>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body modal-padded text-center">
             <div id="sendFeedback">
-              <p>Hai trovato un bug nel gioco, oppure vuoi lasciare un feedback? Sei nel posto giusto!</p>
+              <p>{% trans 'Hai trovato un bug nel gioco, oppure vuoi lasciare un feedback? Sei nel posto giusto!' %}</p>
               <form action="/game/feedback" method="post">
                   {% csrf_token %}
-                  <h3 class="required">Il tuo nome</h3>
+                  <h3 class="required">{% trans 'Il tuo nome' %}</h3>
                   <p>
                     {{ feedback_form.sender_name }}
                   </p>
-                  <h3 style="margin-bottom: 0">Indirizzo email</h3>
-                  <p class="emailNotice">(opzionale, se vuoi essere ricontattato)</p>
+                  <h3 style="margin-bottom: 0">{% trans 'Indirizzo email' %}</h3>
+                  <p class="emailNotice">{% trans '(opzionale, se vuoi essere ricontattato)' %}</p>
                   <p>
                     {{ feedback_form.email }}
                   </p>
-                  <h3 class="required">Messaggio</h3>
+                  <h3 class="required">{% trans 'Messaggio' %}</h3>
                   <p>
                     {{ feedback_form.message }}
                   </p>
-                  <input onclick="feedbackSubmit(event)" class="btn btn-red" type="submit" value="Invia">
+                  <input onclick="feedbackSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Invia' %}">
               </form>
             </div>
             <div id="feedbackReceived">
-              <h1 class="success">Il tuo messaggio è stato registrato con successo. Grazie!</h1>
+              <h1 class="success">{% trans 'Il tuo messaggio è stato registrato con successo. Grazie!' %}</h1>
               <button class="btn btn-red" data-dismiss="modal" aria-label="Close">
-                Chiudi
+                {% trans 'Chiudi' %}
               </button>
             </div>
           </div>

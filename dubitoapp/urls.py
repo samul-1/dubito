@@ -1,6 +1,10 @@
 from django.urls import path, include, re_path
+# from django.conf.urls import url
+# from django.views.i18n import JavaScriptCatalog
+# from django.conf.urls.i18n import i18n_patterns
 
 from . import views
+
 
 urlpatterns = [
     path('', views.create_new_game, name='index'),

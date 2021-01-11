@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.generic import CreateView
 import json
+# from django.contrib.auth.decorators import login_required
 
 def get_joined_players(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
@@ -69,15 +70,6 @@ def join_game(request):
         input_name = form.cleaned_data['name']
     else:
         return JsonResponse(form.errors.as_json(), safe=False, status=400)
-
-    # this is now handled by the form verification
-    # try:  # return error if given game code doesn't match any game
-    #     game = Game.objects.get(code=code)
-    # except Game.DoesNotExist:
-    #     return render(request, 'error.html', {'error': "Il codice inserito non è valido."})
-    # return error if game is full (all players have joined already)
-    # if(game.joined_players == game.number_of_players):
-    #     return HttpResponse("Full")
 
     game = get_object_or_404(Game, code=code)
     if(game.joined_players < game.number_of_players):
@@ -146,3 +138,25 @@ def feedback_create(request):
     feedback = Feedback(sender_name=sender_name, email=email, message=message)
     feedback.save()
     return JsonResponse("[]", status=200, safe=False)
+
+def restart_game(request, game_id):
+    this_game = get_object_or_404(Game, pk=game_id)
+
+    # if game isn't over, redirect to home
+    if not this_game.has_been_won:
+        return redirect(create_new_game)
+
+    # get players who joined this game
+    players = Player.objects.filter(game_id=game_id)
+
+    if('player_id' not in request.session):  # check if user has a session variable player_id
+        return redirect(create_new_game)
+
+    this_player = get_object_or_404(Player, pk=request.session['player_id'])
+    if(this_player not in players):  # check if this player has joined the game
+        return redirect(create_new_game)
+
+    this_game.reset()
+    this_game.deal_cards_to_players()
+
+    return JsonResponse({'status': 'ok'})

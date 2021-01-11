@@ -65,9 +65,14 @@ let vue = new Vue({
     ProgressiveImage: window.VueProgressiveImage,
   },
   data: {
+    mobile_chat_opened: false,
+    restarted_by: -1,
+    restarted_by_name: '',
+    chat_input: '',
     progressively_fired: false,
     won_by: '',
     reactions_enabled: true,
+    chat_enabled: true,
     outcome_text: '',
     removed_cards_text: '',
     uncovered_stack: [],
@@ -88,13 +93,15 @@ let vue = new Vue({
       my_cards: [],
       other_players_data: [],
       my_player_number: -1,
+      all_players_joined: 0,
     },
     state_buffer: {}
   },
 
   mounted() {
     this.$root.$on('bv::popover::show', bvEventObj => { // close shown popovers after 4 seconds
-      self = this
+      console.log(bvEventObj)
+        self = this
       // create reference to new closure timeout
       let ref = {component: bvEventObj.target.id}
       // schedule event to close the popover
@@ -111,10 +118,10 @@ let vue = new Vue({
     const self = this
     gameSocket.onmessage = function (e) {
       data = JSON.parse(e.data)
-      // console.log(data)
+      console.log(data)
       // transfer received state to buffer
       event_type = data.event_specifics.type
-      if(event_type != "reaction") {
+      if(event_type != "reaction" && event_type != "message" && event_type != "restart") {
         self.state_buffer = data.state
       }
       switch (event_type) {
@@ -155,10 +162,16 @@ let vue = new Vue({
         case "reaction":
           self.set_player_text(data.event_specifics.who, true, data.event_specifics.reaction)
           break
+        case "message":
+            self.set_player_text(data.event_specifics.who, false, data.event_specifics.message)
+            break
         case "player_won":
           self.win_buffer = data.event_specifics.winner
           // self.won_by = data.event_specifics.winner
           // self.throw_confetti()
+          break
+        case "restart":
+          self.restart_routine(data.event_specifics.by)
           break
       }
       if(!self.progressively_fired) {
@@ -175,7 +188,7 @@ let vue = new Vue({
   },
 
   watch: {
-    reactions_enabled: function (new_value) { // re-enables reaction buttons after 4 seconds when they are disabled
+    reactions_enabled: function (new_value) { // re-enables reaction buttons after 4.5 seconds when they are disabled
       if (!new_value) {
         self = this
         setTimeout(function () {
@@ -183,6 +196,15 @@ let vue = new Vue({
         }, 4500)
       }
     },
+
+    chat_enabled: function (new_value) { // re-enables chat after 2.5 seconds when it's disabled
+        if (!new_value) {
+          self = this
+          setTimeout(function () {
+            self.chat_enabled = true
+          }, 2500)
+        }
+      },
 
     number_of_stacked_cards: function (new_value) { // when it's my turn and there are no stacked cards, play begin round animation
       if (!new_value && this.state.my_player_number == this.state.current_turn) {
@@ -303,10 +325,10 @@ let vue = new Vue({
     // make the modal visible and set a timeout to hide it automatically
     async show_stack_modal(outcome, doubter) {
       if (outcome) {
-        this.outcome_text = doubter + " ha dubitato correttamente!"
+        this.outcome_text = doubter + " " + window.gettext("ha dubitato correttamente") + "!"
         success_sound.play()
       } else {
-        this.outcome_text = doubter + " ha sbagliato!"
+        this.outcome_text = doubter + " " + window.gettext("ha sbagliato") + "!"
         failure_sound.play()
       }
 
@@ -333,7 +355,7 @@ let vue = new Vue({
         return
       }
       this.outcome_text = ""
-      this.removed_cards_text = losing_player + " ha tutte e 8 le copie di <img class='card_icon' src='" + this.get_card_icon_url(removed_cards[0]) + "' />, quindi le scarta"
+      this.removed_cards_text = losing_player + " " + window.gettext("ha tutte e 8 le copie di ") + "<img class='card_icon' src='" + this.get_card_icon_url(removed_cards[0]) + "' />, " + window.gettext("quindi le scarta")
       this.uncovered_stack = this.get_eight_copies_of(removed_cards[0]) //.push(removed_cards[0] + "D")
       $("#stack_modal").modal("show")
       setTimeout(function () { // enable flipping
@@ -390,8 +412,10 @@ let vue = new Vue({
 
     copy_buffer_to_state() { // copies new state received from server from buffer to actual state object
       if(this.win_buffer) {
+        if(this.won_by == '') {
+          this.throw_confetti()
+        }
         this.won_by = this.win_buffer
-        this.throw_confetti()
       } else {
         this.state = this.state_buffer
       }
@@ -417,7 +441,7 @@ let vue = new Vue({
 
     place_cards(placing_lots_of_cards) { // sends message to websocket that selected_cards were placed down
       if(placing_lots_of_cards) {
-        if(!confirm("Hai selezionato la bellezza di " + this.number_of_selected_cards + " carte. Sei sicuro di volerle mettere giù?")) {
+        if(!confirm(window.gettext("Hai selezionato la bellezza di ") + this.number_of_selected_cards + window.gettext(" carte. Sei sicuro di volerle mettere giù?"))) {
           return
         }
       }
@@ -429,6 +453,20 @@ let vue = new Vue({
         })
       )
       this.selected_cards = []
+    },
+
+    send_chat_message() { // sends a chat message to websocket
+        if(!this.chat_enabled) {
+            return
+        }
+        gameSocket.send(
+            JSON.stringify({
+                'type': 'chat_message',
+                'message': this.chat_input,
+            })
+        )
+        this.chat_input = ''
+        this.chat_enabled = false // watcher will re-enable chat after 4 seconds
     },
 
     start_round() { // sends message to websocket that round started
@@ -454,6 +492,25 @@ let vue = new Vue({
           'type': 'doubt',
         })
       )
+    },
+
+    restart_game() { // sends message to websocket to restart ended game
+      gameSocket.send(
+        JSON.stringify({
+          'type': 'restart',
+        })
+      )
+    },
+
+    restart_routine(restarted_by) { // called upon receiving message from websocket that somebody wants to play again      
+      let idx = this.state.other_players_data.findIndex(p => p.number === this.restarted_by)
+      if (idx != -1) {
+        this.restarted_by = restarted_by
+        this.restarted_by_name = this.state.other_players_data[idx].name
+      } else {
+        // reload page and to begin playing new game
+        window.location.reload()
+      }
     },
 
     animate_text() {
@@ -534,9 +591,12 @@ let vue = new Vue({
 
     current_turn_name() {
       let idx = this.state.other_players_data.findIndex(p => p.number === this.state.current_turn)
-      if (idx != -1)
-        return 'È il turno di ' + this.state.other_players_data[idx].name
-      return 'È il mio turno'
+      if (idx != -1) {
+        const format = window.gettext('È il turno di %s')
+        return interpolate(format, [this.state.other_players_data[idx].name])
+      }
+        // return 'È il turno di ' + this.state.other_players_data[idx].name
+      return window.gettext('È il mio turno')
     },
 
     number_of_stacked_cards() {

@@ -18,6 +18,34 @@ html, body {
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 
+.toggle-mobile-button-wrapper {
+  margin-top: 10px;
+}
+
+.btn-lg-custom {
+  font-size: 1.5em !important;
+}
+
+.toggle-mobile-button {
+  display: none !important;
+}
+
+.overlayed-paragraph {
+  font-size: 2em;
+  padding: 0 2px 0 2px;
+}
+
+.input-group-text {
+    text-shadow: 0 !important;
+    padding: 5px !important;
+    border: 0 !important;
+    color: white !important;
+}
+
+.input-group {
+    box-shadow: 1px 1px 5px 1px #23272b;
+}
+
 .backgrounded-text, button {
   -webkit-box-shadow: 0.5px 0.5px 3px 0px rgba(0,0,0,1);
   -moz-box-shadow: 0.5px 0.5px 3px 0px rgba(0,0,0,1);
@@ -38,8 +66,8 @@ html, body {
 
 #overlay {
   position: fixed;
-  width: 100%;
-  height: 100%;
+  /* width: 100%;
+  height: 100%; */
   top: 0;
   left: 0;
   right: 0;
@@ -49,14 +77,29 @@ html, body {
   display: none;
 }
 
+.overlay-light {
+  background-color: rgba(0,0,0,0.35) !important;
+}
+
 #overlayed_text{
   position: absolute;
-  top: 50%;
-  left: 50%;
-  font-size: 50px;
+  top: 40%;
+  /* left: 50%;
+  font-size: 20px; */
+  width: 100%;
   color: white;
-  transform: translate(-50%,-50%);
+  /* transform: translate(-50%,-50%);
   -ms-transform: translate(-50%,-50%);
+  text-align: center; */
+  text-shadow: 2px 2px 4px #343A40;
+}
+
+.won-text {
+  width: max-content;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin: 0 auto;
+  margin-bottom: 10px;
 }
 
 .displayed {
@@ -508,6 +551,10 @@ td {
   padding: 1.5px;
 }
 
+.clickable {
+  display: none;
+}
+
 /* iPhone 4/5/6/7/8 portrait, Galaxy Fold */
 @media only screen 
   and (min-device-width: 375px) 
@@ -528,6 +575,21 @@ td {
     touch-action: manipulation;
   }
 
+  .toggle-mobile-button-wrapper {
+    margin-top: 15px;
+    position: absolute;
+    right: 5.5%;
+    z-index: 9 !important;
+  }
+
+  input:active {
+    font-size: 50px !important;
+  }
+
+  .clickable {
+    display: inline-block !important;
+  }
+
   body {
     font-size: 1.8em !important;
   }
@@ -538,6 +600,44 @@ td {
 
   h5 {
     font-size: 1.5em !important;
+  }
+
+  .toggle-mobile-button {
+    display: block !important;
+  }
+
+  .toggle-mobile {
+    display: none !important;
+  }
+
+  .toggle-mobile-opened {
+    display: block !important;
+    border: 1px solid black;
+    transform: scale(2.5);
+    position: fixed !important;
+    width: 25% !important;
+    left: 40%;
+    top: 22%;
+    background-color: rgba(68, 68, 68, 0.9);
+    text-align: center;
+  }
+
+  .toggle-mobile-opened input {
+    border: 1px solid white !important;
+    border-radius: 3px !important;
+  }
+
+  .input-group-text {
+    width: 100%;
+    border-radius: 0 !important;
+  }
+
+  #chat_input {
+    margin-bottom: 8px;
+  }
+
+  .clickable:hover {
+    cursor: pointer;
   }
 
   .selected {
@@ -628,11 +728,6 @@ td {
     height: auto;
   }
 
-  /* .player_placeholder {
-    width: 100px;
-    height: auto;
-  } */
-
   .btn-lg {
     width: 100% !important;
     font-size: 1.5em !important;
@@ -715,6 +810,62 @@ td {
   and (-webkit-min-device-pixel-ratio: 2) {
   * {
     touch-action: manipulation;
+  }
+
+  input:active {
+    font-size: 50px !important;
+  }
+
+  .clickable {
+    display: inline-block !important;
+  }
+
+  .toggle-mobile-button {
+    display: block !important;
+  }
+
+  .toggle-mobile-button-wrapper {
+    margin-top: 15px;
+    position: absolute;
+    right: 5.5%;
+    z-index: 9 !important;
+    top: -15px;
+  }
+
+  .toggle-mobile {
+    display: none !important;
+  }
+
+  #chat_input {
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+
+  .toggle-mobile-opened {
+    display: block !important;
+    border: 1px solid black;
+    transform: scale(2.5);
+    z-index: 10 !important;
+    position: fixed !important;
+    width: 25% !important;
+    left: 40%;
+    top: 25%;
+    background-color: rgba(68, 68, 68, 0.9);
+    text-align: center;
+  }
+
+  .toggle-mobile-opened input {
+    border: 1px solid white !important;
+    border-radius: 3px !important;
+  }
+
+  .input-group-text {
+    width: 100%;
+    border-radius: 0 !important;
+  }
+
+  #doubt {
+    width: 69.5% !important;
   }
 
   body {
@@ -901,6 +1052,64 @@ td {
       touch-action: manipulation;
     }
 
+    .status_icon {
+      width: 10px;
+      height: auto;
+    }
+
+    input:active {
+      font-size: 50px !important;
+    }
+
+    .toggle-mobile-button {
+      display: block !important;
+    }
+
+    .toggle-mobile-button-wrapper {
+      margin-top: 15px;
+      position: absolute;
+      right: 5.5%;
+      z-index: 9 !important;
+      top: -15px;
+    }
+  
+    .toggle-mobile {
+      display: none !important;
+    }
+
+    #chat_input {
+      margin-top: 6px;
+    }
+  
+    .toggle-mobile-opened {
+      /* display: inline-block !important;
+      transform: scale(2); */
+      display: block !important;
+      border: 1px solid black;
+      transform: scale(1.2);
+      z-index: 10 !important;
+      position: fixed !important;
+      width: 25% !important;
+      left: 40%;
+      top: 25%;
+      background-color: rgba(68, 68, 68, 0.9);
+      text-align: center;
+    }
+  
+    .toggle-mobile-opened input {
+      border: 1px solid white !important;
+      border-radius: 3px !important;
+    }
+  
+    .input-group-text {
+      width: 100%;
+      border-radius: 0 !important;
+    }
+  
+    #chat_input {
+      margin-bottom: 8px;
+    }
+
     .col-10 {
       -ms-flex: 0 0 50% !important;
       flex: 0 0 50% !important;
@@ -949,6 +1158,7 @@ td {
 
     #doubt {
       margin-bottom: 10px;
+      width: 70%;
     }
 
     #n_selected_cards_mobile {
@@ -978,7 +1188,7 @@ td {
     }
 
     .player_placeholder {
-      width: 55px;
+      width: 45px;
       height: auto;
     }
 
@@ -996,6 +1206,57 @@ td {
   and (-webkit-min-device-pixel-ratio: 2) {
   .relativeOnDesktop {
     position: initial;
+  }
+
+  .toggle-mobile-button-wrapper {
+    margin-top: 10px;
+    position: absolute;
+    right: 5.5%;
+    z-index: 9 !important;
+  }
+
+  input:active {
+    font-size: 50px !important;
+  }
+
+  .clickable {
+    display: inline-block !important;
+  }
+
+  .toggle-mobile-button {
+    display: block !important;
+  }
+
+  .toggle-mobile {
+    display: none !important;
+  }
+
+  .toggle-mobile-opened {
+    display: block !important;
+    border: 1px solid black;
+    transform: scale(1.5);
+    position: fixed !important;
+    width: 25% !important;
+    left: 40%;
+    top: 22%;
+    background-color: rgba(68, 68, 68, 0.9);
+    text-align: center;
+    z-index: 10 !important;
+  }
+
+  .toggle-mobile-opened input {
+    border: 1px solid white !important;
+    border-radius: 3px !important;
+  }
+
+  .input-group-text {
+    width: 100%;
+    border-radius: 0 !important;
+  }
+
+  #chat_input {
+    margin-top: 8px;
+    margin-bottom: 8px;
   }
 
   .col-2-landscape {

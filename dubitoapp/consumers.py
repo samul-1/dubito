@@ -37,6 +37,11 @@ class GameConsumer(AsyncWebsocketConsumer):
         # mark player as online
         await self.set_online_status(self.player_id, True)
 
+        # if player is rejoining a restarted game, record that as well
+        if not await self.has_rejoined(self.player_id):
+            await self.set_rejoined(self.player_id, True)
+            await self.increment_joined_players(self.game_id)
+
         # send new game state to all players
         await self.send_new_state_to_all_players({
             'type': 'player_joined'
@@ -88,6 +93,11 @@ class GameConsumer(AsyncWebsocketConsumer):
             # called when a player clicks on a reaction button
             reaction = text_data_json['reaction']
             await self.send_reaction(reaction)
+        elif action == 'chat_message':
+            message = text_data_json['message']
+            await self.send_message(message)
+        elif action == 'restart':
+            await self.restart_game()
 
     async def start_round(self, claimed_card, cards):
         # Sends claimed card information and saves placed cards to db
@@ -240,7 +250,6 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send_new_state_to_all_players(event_specifics)
         await self.unlock_game(self.game_id)  # resume normal game flow
         await self.check_current_player_online()  # handle the case where current player isn't online
-
     
     async def place_cards(self, cards):
         # Sends amount of cards of current number placed and saves placed cards to db
@@ -301,6 +310,39 @@ class GameConsumer(AsyncWebsocketConsumer):
             }
         )
 
+    async def send_message(self, message):
+        # Called when a player sends a chat message
+        if len(message) > 70:
+            return
+
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'message_handler',
+                'who': self.player_id,
+                'message': message,
+            }
+        )
+
+    async def restart_game(self):
+        # Called when a player wants to play again at the end of a game
+        #if not await self.game_has_been_won(self.game_id):
+            # return
+
+        await self.restart_game_routine(self.game_id)
+
+        for player in await sync_to_async(list)(await self.get_players(self.game_id)):
+            await self.set_online_status(player.pk, False)
+            await self.set_rejoined(player.pk, False)
+
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'restarted_handler',
+                'restarted_by': await self.get_player_number(self.player_id),
+            }
+        )
+
     async def verify_or_revoke_victory(self, game_id):
         # if there was a player with zero cards on last turn, and they
         # still have zero cards after next event, they win
@@ -343,6 +385,27 @@ class GameConsumer(AsyncWebsocketConsumer):
             },
         }))
 
+    async def message_handler(self, event):
+        if(self.player_id == event['who']):
+            # don't send reaction back to the player who sent the event
+            return
+
+        await self.send(text_data=json.dumps({
+            'event_specifics': {
+                'type': 'message',
+                'message': event['message'],
+                'who': await self.get_player_number(event['who']),
+            },
+        }))
+
+    async def restarted_handler(self, event):
+        await self.send(text_data=json.dumps({
+            'event_specifics': {
+                'type': 'restart',
+                'by': event['restarted_by'],
+            },
+        }))
+
     @database_sync_to_async
     def increment_turn(self, game_id):
         game = Game.objects.get(pk=game_id)
@@ -352,7 +415,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def pass_turn(self, game_id):
-        # increments turn but doesn't update player_last_turn 
+        # increments turn but doesn't update player_last_turn
         # (used for skipping turns of offline players)
         game = Game.objects.get(pk=game_id)
         game.player_current_turn = (game.player_current_turn % game.number_of_players) + 1
@@ -574,18 +637,27 @@ class GameConsumer(AsyncWebsocketConsumer):
                 'name': player.name,
             }
             other_players_list.append(player_data)
+
+        all_players_joined = game.number_of_players == game.joined_players
+
         state = {
-            'current_turn': game.player_current_turn,
             'last_turn': game.player_last_turn,
             'current_card': game.current_card,
             'last_card': game.last_card,
-            'number_of_stacked_cards': len(json.loads(game.stacked_cards)),
             'last_amount_played': game.last_amount_played,
             'won_by': game.winning_player if game.has_been_won else -1,
             'my_cards': my_cards,
             'other_players_data': other_players_list,
             'my_player_number': this_player.player_number,
         }
+
+        if all_players_joined:
+            state['current_turn'] = game.player_current_turn
+            state['number_of_stacked_cards'] = len(json.loads(game.stacked_cards))
+            state['all_players_joined'] = 1
+        else:
+            state['all_players_joined'] = 0
+            state['number_of_stacked_cards'] = 0.1
 
         return state
 
@@ -618,4 +690,35 @@ class GameConsumer(AsyncWebsocketConsumer):
     def set_game_has_been_won(self, game_id):
         game = Game.objects.get(pk=game_id)
         game.has_been_won = True
+        game.save()
+
+    @database_sync_to_async
+    def game_has_been_won(self, game_id):
+        return Game.objects.get(pk=game_id).has_been_won
+
+    @database_sync_to_async
+    def restart_game_routine(self, game_id):
+        game = Game.objects.get(pk=game_id)
+        game.reset()
+        game.deal_cards_to_players()
+
+    @database_sync_to_async
+    def has_rejoined(self, player_id):
+        return Player.objects.get(pk=player_id).rejoined
+
+    @database_sync_to_async
+    def set_rejoined(self, player_id, to):
+        player = Player.objects.get(pk=player_id)
+        player.rejoined = to
+        player.save()
+
+    @database_sync_to_async
+    def all_players_joined(self, game_id):
+        game = Game.objects.get(pk=game_id)
+        return game.number_of_players == game.joined_players
+
+    @database_sync_to_async
+    def increment_joined_players(self, game_id):
+        game = Game.objects.get(pk=game_id)
+        game.joined_players += 1
         game.save()

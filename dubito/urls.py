@@ -19,8 +19,20 @@ from django.urls import path
 from django.contrib import admin
 from django.urls import include, path
 
+from django.conf.urls import url
+from django.views.i18n import JavaScriptCatalog
+from django.conf.urls.i18n import i18n_patterns
+
 urlpatterns = [
     path('', include('dubitoapp.urls')),
     path('game/', include('dubitoapp.urls')),
     path('wugierqwetisfjoi14/', admin.site.urls),
 ]
+
+js_info_dict = {
+    'packages': ('dubitoapp',),
+}
+
+urlpatterns += i18n_patterns(
+    path('jsi18n/', JavaScriptCatalog.as_view(packages=['dubitoapp'], domain="django"), name='javascript-catalog'),
+)

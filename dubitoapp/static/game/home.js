@@ -18,7 +18,7 @@ function createSubmit(e) {
     if(!name_.length) {
       err = 1
       appendFormError(JSON.stringify({
-          "creator_name": [{"message": "Campo richiesto.", "creator_name": "required"}]
+          "creator_name": [{"message": gettext("Campo richiesto."), "creator_name": "required"}]
       }))
     }
   
@@ -50,13 +50,13 @@ function joinSubmit(e) {
   if(code.length != 5) {
       err = 1
       appendFormError(JSON.stringify({
-          "code": [{"message": "Il codice partita dev'essere esattamente di 5 cifre.", "code": ""}]
+          "code": [{"message": gettext("Il codice partita dev'essere esattamente di 5 cifre."), "code": ""}]
       }))
   }
   if(!name_.length) {
     err = 1
     appendFormError(JSON.stringify({
-        "name": [{"message": "Campo richiesto.", "name": "required"}]
+        "name": [{"message": gettext("Campo richiesto."), "name": "required"}]
     }))
   }
 
@@ -89,14 +89,14 @@ function feedbackSubmit(e) {
   if(!name_.length) {
     err = 1
     appendFormError(JSON.stringify({
-        "sender_name": [{"message": "Campo richiesto.", "name": "required"}]
+        "sender_name": [{"message": gettext("Campo richiesto."), "name": "required"}]
     }))
   }
 
   if(!message.length) {
     err = 1
     appendFormError(JSON.stringify({
-        "message": [{"message": "Campo richiesto.", "name": "required"}]
+        "message": [{"message": gettext("Campo richiesto."), "name": "required"}]
     }))
   }
 
