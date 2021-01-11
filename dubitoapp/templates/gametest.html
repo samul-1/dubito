@@ -415,9 +415,7 @@
         </div>
 
         <script>
-            // progressive image rendering
-            //window.onload = progressively.init
-            // document.oncontextmenu = new Function("return false;")
+            document.oncontextmenu = new Function("return false;")
 
             const game_id = {{ game_id }}
             const flipped_sound = new Audio(static_path + "sound/flipped.mp3")
