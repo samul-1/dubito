@@ -35,4 +35,5 @@ js_info_dict = {
 
 urlpatterns += i18n_patterns(
     path('jsi18n/', JavaScriptCatalog.as_view(packages=['dubitoapp'], domain="django"), name='javascript-catalog'),
+    path('', include('dubitoapp.urls')),
 )
