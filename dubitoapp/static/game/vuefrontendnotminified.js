@@ -100,7 +100,7 @@ let vue = new Vue({
 
   mounted() {
     this.$root.$on('bv::popover::show', bvEventObj => { // close shown popovers after 4 seconds
-      console.log(bvEventObj)
+      // console.log(bvEventObj)
         self = this
       // create reference to new closure timeout
       let ref = {component: bvEventObj.target.id}
@@ -118,7 +118,7 @@ let vue = new Vue({
     const self = this
     gameSocket.onmessage = function (e) {
       data = JSON.parse(e.data)
-      console.log(data)
+      // console.log(data)
       // transfer received state to buffer
       event_type = data.event_specifics.type
       if(event_type != "reaction" && event_type != "message" && event_type != "restart") {
