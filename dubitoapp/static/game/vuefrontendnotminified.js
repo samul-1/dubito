@@ -503,7 +503,7 @@ let vue = new Vue({
     },
 
     restart_routine(restarted_by) { // called upon receiving message from websocket that somebody wants to play again      
-      let idx = this.state.other_players_data.findIndex(p => p.number === this.restarted_by)
+      let idx = this.state.other_players_data.findIndex(p => p.number === restarted_by)
       if (idx != -1) {
         this.restarted_by = restarted_by
         this.restarted_by_name = this.state.other_players_data[idx].name

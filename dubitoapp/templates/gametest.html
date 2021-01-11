@@ -269,7 +269,7 @@
                                 :disabled="state.current_turn != this.state.my_player_number || !number_of_selected_cards || playing_animation"
                                 @click="state.number_of_stacked_cards ? place_cards((number_of_selected_cards > 11)) : start_round()"
                             >
-                                {% trans 'Metti giù' %} <span class="parenthesized" >${ number_of_selected_cards }</span> <!-- id="n_selected_cards_mobile" -->
+                                {% trans 'Metti giù' %} <span class="parenthesized selected-cards-n" >${ number_of_selected_cards }</span> <!-- id="n_selected_cards_mobile" -->
                             </button>
                             <!--<p class="backgrounded-text" id="selected_cards_text" >Hai selezionato <strong><span id="n_selected_cards">${ number_of_selected_cards }</span></strong> carte</p><br />-->
                             <div class="toggle-mobile-button-wrapper">

@@ -18,6 +18,11 @@ html, body {
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 
+.selected-cards-n {
+  font-size: 0.8em;
+  vertical-align: text-top;
+}
+
 .toggle-mobile-button-wrapper {
   margin-top: 10px;
 }
@@ -582,6 +587,11 @@ td {
     z-index: 9 !important;
   }
 
+  .selected-cards-n {
+    font-size: 0.65em;
+    vertical-align: middle !important;
+  }
+
   input:active {
     font-size: 50px !important;
   }
@@ -811,6 +821,7 @@ td {
   * {
     touch-action: manipulation;
   }
+
 
   input:active {
     font-size: 50px !important;
@@ -1050,6 +1061,11 @@ td {
   and (orientation: landscape) { 
     * {
       touch-action: manipulation;
+    }
+
+    .selected-cards-n {
+      font-size: 0.85em;
+      vertical-align: text-top !important;
     }
 
     .status_icon {
