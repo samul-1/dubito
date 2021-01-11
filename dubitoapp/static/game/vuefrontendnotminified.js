@@ -100,7 +100,7 @@ let vue = new Vue({
 
   mounted() {
     this.$root.$on('bv::popover::show', bvEventObj => { // close shown popovers after 4 seconds
-      console.log(bvEventObj)
+      // console.log(bvEventObj)
         self = this
       // create reference to new closure timeout
       let ref = {component: bvEventObj.target.id}
