@@ -193,7 +193,7 @@
                     </p> -->
                 </div>
                 <div class="row relativeOnDesktop h-25 h-27-tablet padded overflow-auto">
-                        <div class="col-4 col-2-landscape col-xl-2 order-1">
+                        <div class="col-4 col-2-landscape col-xl-2 order-1  mt-desktop">
                             <div style="display:inline-block">
                                 <p
                                 :class="{'your_turn': state.current_turn == this.state.my_player_number}"
@@ -204,7 +204,7 @@
                                 <p class="backgrounded-text">{% trans 'Carta attuale' %}: <span id="curr_card"><img :src="get_card_icon_url(state.current_card)" class="card_icon" /></span></p>
                             </div>
                         </div>
-                        <div class="reaction_box col-4 col-3-landscape col-xl-2 order-2">
+                        <div class="reaction_box col-4 col-3-landscape col-xl-2 order-2 less-mt-desktop">
                             <span style="padding-left:5px!important;padding-right:5px!important" class="reaction_title">{% trans 'Reazioni' %}:</span>
                             <table>
                                 <tbody>
@@ -261,8 +261,8 @@
                                 <img id="hidden_uncovered_card" class="card_placeholder" src="{% static "game/img/cards/red_back-min.png" %}" />
                             </div>
                         </div>
-                        <div class="col-4 col-xl-3 col-3-landscape order-3 order-xl-12">
-                            <button class="btn btn-lg btn-dark action_button" id="doubt" @click="doubt()" :disabled="playing_animation">Dubito!</button>
+                        <div class="col-4 col-xl-3 col-3-landscape order-3 order-xl-12 mt-desktop">
+                            <button class="btn btn-lg btn-dark action_button" id="doubt" @click="doubt()" :disabled="playing_animation">{% trans 'Dubito!' %}</button>
                             <button 
                                 class="btn btn-lg btn-dark action_button"
                                 id="place"
@@ -317,7 +317,7 @@
                             </div>
                         </div>
                         <div 
-                        class="col-4 order-xl-11 hiddenOnMobile col-xl-2"
+                        class="col-4 order-xl-11 hiddenOnMobile col-xl-2 mt-desktop"
                         v-bind:class="{mobileNonInvasivePopup: state.current_turn == this.state.my_player_number && !state.number_of_stacked_cards}"
                         >   
                             <p
@@ -397,7 +397,7 @@
                 </div>
             </div>
             <div id="card_choice_modal" class="modal" tabindex="-1" role="dialog">
-                <div class="modal-dialog" style="max-width:900px" role="document">
+                <div class="modal-dialog card-choice-content" role="document">
                   <div class="modal-content stack-modal-content">
                     <div class="modal-header text-center" style="border:0!important;background-color:transparent">
                         <h1 class="ml1"class="modal-title" style="width: 100%; margin: 0 auto;">
@@ -415,7 +415,7 @@
         </div>
 
         <script>
-            document.oncontextmenu = new Function("return false;")
+            // document.oncontextmenu = new Function("return false;")
 
             const game_id = {{ game_id }}
             const flipped_sound = new Audio(static_path + "sound/flipped.mp3")

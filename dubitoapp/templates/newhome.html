@@ -28,8 +28,11 @@
       href="{% translate_url en %}" />
 
       <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-      <meta name="description" content="La prima app per giocare online a Dubito!" />
-      <meta name="keywords" content="carte, gioco di carte, dubito, dubito online, gratis, giochi di carte online, giochi gratis, giochi online, poker, card game, asso, ace, scala, casino, carta, playing card game, playing card, cards, carte da gioco, carta da gioco, browser game, online game, multiplayer, partita, bluff, balle, bullshit, b.s., I doubt it, doubt, free card game, multilanguage app, free">
+      
+      <meta lang="it" name="description" content="La prima app per giocare online a Dubito!" />
+      <meta lang="en" name="description" content="The first app to play I Doubt It (aka Cheat) online!" />
+
+      <meta name="keywords" content="carte, gioco di carte, dubito, dubito online, gratis, giochi di carte online, giochi gratis, giochi online, poker, card game, asso, ace, scala, casino, carta, playing card game, playing card, cards, carte da gioco, carta da gioco, browser game, online game, multiplayer, partita, bluff, balle, bullshit, b.s., I doubt it, doubt, free card game, multilanguage app, free, cheat, cheat card game, play cheat online">
       
       <link rel="shortcut icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
       <link rel="icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
@@ -67,16 +70,16 @@
         <div class="row justify-content-center" id="row2">
             <div class="col-12 col-lg-5">
                 <button type="button" class="btn btn-red btn-bordered btn-90-width btn-vertically-padded" data-toggle="modal" data-target="#createModal">
-                    <h3>
+                    <p class="h3">
                         <i class="fas fa-plus-circle"></i> &nbsp;{% trans 'Crea partita' %}
-                    </h3>
+                    </p>
                 </button>
             </div>
             <div class="col-12 col-lg-5">
                 <button type="button" class="btn btn-red btn-bordered btn-90-width btn-vertically-padded" data-toggle="modal" data-target="#joinModal">
-                    <h3>
+                    <p class="h3">
                         <i class="fas fa-user-plus"></i> &nbsp;{% trans 'Unisciti a una partita' %}
-                    </h3>
+                    </p>
                 </button> 
             </div>
         </div>
@@ -97,12 +100,12 @@
         </div>
     </div>
 
-    <!-- Join modal -->
-    <div class="modal" id="createModal" tabindex="-1" role="dialog" aria-labelledby="joinModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered to modal-lg role="document">
+    <!-- Create modal -->
+    <div class="modal" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
-            <h1 class="modal-title" id="joinModalLabel">{% trans 'Crea partita' %}</h1>
+            <h1 class="modal-title" id="createModalLabel">{% trans 'Crea partita' %}</h1>
           </div>
           <div class="modal-body modal-padded text-center">
             <div id="phase1">
@@ -134,7 +137,7 @@
       </div>
     </div>
 
-    <!-- Create modal -->
+    <!-- Join modal -->
     <div class="modal" id="joinModal" tabindex="-1" role="dialog" aria-labelledby="joinModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
@@ -164,11 +167,11 @@
     </div>
 
      <!-- Instructions modal -->
-     <div class="modal" id="instructionsModal" tabindex="-1" role="dialog" aria-labelledby="joinModalLabel" aria-hidden="true">
+     <div class="modal" id="instructionsModal" tabindex="-1" role="dialog" aria-labelledby="howtoplayModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
-            <h1 class="modal-title" id="joinModalLabel">{% trans 'Come si gioca?' %}</h1>
+            <h1 class="modal-title" id="howtoplayModalLabel">{% trans 'Come si gioca?' %}</h1>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -206,9 +209,9 @@
                 <strong>{% trans 'Ricorda che puoi mentire' %}</strong> {% trans 'e mettere giù qualsiasi carta!' %}
               </p>
               <p>
-                {% trans 'Un giocatore può' %} <strong>{% trans 'dubitare' %}</strong> {% trans "dell'ultimo che ha messo giù carte. Cliccando su" %} <em>{% trans 'Dubito!' %}</em>
-                {% trans 'vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva mentito, riprenderà tutte le carte che sono giù,' %}'
-                {% trans 'altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da chi dei due ha vinto lo scontro.' %}
+                {% trans 'Un giocatore può' %} <strong>{% trans 'dubitare' %}</strong> {% trans "dell'ultimo che ha messo giù carte, se pensa che abbia mentito. Cliccando su" %} <em>{% trans 'Dubito!' %}</em>
+                {% trans 'vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva mentito, riprenderà tutte le carte che sono sul tavolo,' %}
+                {% trans 'altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da chi dei due ha vinto lo scontro. Il primo giocatore che rimane senza carte vince!' %}
               </p>
             </div>
           </div>
@@ -221,7 +224,7 @@
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
-            <h1 class="modal-title" id="joinModalLabel">{% trans 'Contattaci' %}</h1>
+            <h1 class="modal-title" id="feedbackModalLabel">{% trans 'Contattaci' %}</h1>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>

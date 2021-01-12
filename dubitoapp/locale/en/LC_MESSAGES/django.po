@@ -32,7 +32,7 @@ msgstr "Reactions"
 
 #: dubitoapp/templates/gametest.html:235
 msgid "Metti giù"
-msgstr "Put down"
+msgstr "Place"
 
 #: dubitoapp/templates/gametest.html:248
 msgid "Scrivi qualcosa..."
@@ -40,7 +40,7 @@ msgstr "Type something..."
 
 #: dubitoapp/templates/gametest.html:269
 msgid "Annuncerai"
-msgstr "You'll announce"
+msgstr "You'll call"
 
 #: dubitoapp/templates/gametest.html:274
 msgid "Cambia"
@@ -48,7 +48,7 @@ msgstr "Change"
 
 #: dubitoapp/templates/gametest.html:281 dubitoapp/templates/newhome.html:190
 msgid "Quale carta annunci?"
-msgstr "Which card will you announce?"
+msgstr "Which card will you call?"
 
 #: dubitoapp/templates/gametest.html:282
 msgid "Asso"
@@ -56,7 +56,7 @@ msgstr "Ace"
 
 #: dubitoapp/templates/gametest.html:348
 msgid "Tocca a te! Scegli la carta da annunciare"
-msgstr "It's your turn! Pick a card to announce"
+msgstr "It's your turn! Call the rank of a card"
 
 #: dubitoapp/templates/newhome.html:59 dubitoapp/templates/newhome.html:93
 #: dubitoapp/templates/newhome.html:108 dubitoapp/templates/newhome.html:170
@@ -78,7 +78,7 @@ msgstr "Contact us"
 
 #: dubitoapp/templates/newhome.html:100
 msgid "Numero di giocatori"
-msgstr "Numer of players"
+msgstr "Number of players"
 
 #: dubitoapp/templates/newhome.html:104 dubitoapp/templates/newhome.html:143
 msgid "Scegli un nome"
@@ -158,7 +158,7 @@ msgid ""
 "Il primo giocatore sceglie con quale carta iniziare il giro selezionandola "
 "dal menu"
 msgstr ""
-"The first player chooses a card to start the turn with by selecting it from "
+"The first player chooses a rank to start the turn with by selecting it from "
 "the pop-up menu titled"
 
 #: dubitoapp/templates/newhome.html:190
@@ -170,8 +170,8 @@ msgid ""
 "Durante il tuo turno, dovrai mettere giù una o più carte del tipo "
 "selezionato dal primo giocatore."
 msgstr ""
-"During your turn, you'll have to place down one or more cards with number "
-"(or letter) equal to that choesn by the first player."
+"During your turn, you'll have to place one or more cards of the same "
+"rank as the one choesn by the first player."
 
 #: dubitoapp/templates/newhome.html:194
 msgid "Ricorda che puoi mentire"
@@ -179,7 +179,7 @@ msgstr "You can also lie"
 
 #: dubitoapp/templates/newhome.html:194
 msgid "e mettere giù qualsiasi carta!"
-msgstr "and place down any card!"
+msgstr "and place down any card, even of different ranks!"
 
 #: dubitoapp/templates/newhome.html:197
 msgid "Un giocatore può"
@@ -190,28 +190,27 @@ msgid "dubitare"
 msgstr "doubt"
 
 #: dubitoapp/templates/newhome.html:197
-msgid "dell'ultimo che ha messo giù carte. Cliccando su"
-msgstr "the last one who placed cards down. By clicking"
+msgid "dell'ultimo che ha messo giù carte, se pensa che abbia mentito. Cliccando su"
+msgstr "(i.e. call out) the last one who placed cards, if they think they lied. By clicking"
 
-#: dubitoapp/templates/newhome.html:197
 msgid "Dubito!"
-msgstr "Dubito!"
+msgstr "Doubt!"
 
 #: dubitoapp/templates/newhome.html:198
 msgid ""
 "vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva "
-"mentito, riprenderà tutte le carte che sono giù,"
+"mentito, riprenderà tutte le carte che sono sul tavolo,"
 msgstr ""
-"you will reveal the last cards that were placed on the pile. If the previous "
-"player lied, they will take back all the cards on the table,"
+"you can reveal the last cards that were placed on the pile. If the previous "
+"player had lied, they will take back all the cards on the table,"
 
 #: dubitoapp/templates/newhome.html:199
 msgid ""
 "altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da "
-"chi dei due ha vinto lo scontro."
+"chi dei due ha vinto lo scontro. Il primo giocatore che rimane senza carte vince!"
 msgstr ""
-"otherwise you'll take them all back in your hand. The player who won the "
-"round will resume playing first."
+"otherwise you'll be the one to take them all. The player who won the "
+"round will resume playing first. The first player to get rid of all their cards wins!"
 
 #: dubitoapp/templates/newhome.html:219
 msgid ""

@@ -18,6 +18,10 @@ html, body {
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 
+.card-choice-content {
+    max-width: 70% !important;
+}
+
 .selected-cards-n {
   font-size: 0.8em;
   vertical-align: text-top;
@@ -580,6 +584,10 @@ td {
     touch-action: manipulation;
   }
 
+  .card-choice-content {
+    max-width: 100% !important;
+}
+
   .toggle-mobile-button-wrapper {
     margin-top: 15px;
     position: absolute;
@@ -822,6 +830,9 @@ td {
     touch-action: manipulation;
   }
 
+  .card-choice-content {
+    max-width: 100% !important;
+  }
 
   input:active {
     font-size: 50px !important;
@@ -875,12 +886,8 @@ td {
     border-radius: 0 !important;
   }
 
-  #doubt {
-    width: 69.5% !important;
-  }
-
   body {
-    font-size: 2em !important;
+    font-size: 1.9em !important;
   }
 
   h5 {
@@ -937,7 +944,7 @@ td {
     display: block !important;
     position: absolute !important;
     right: 1%;
-    bottom: -5%;
+    bottom: -0.5%;
   }
 
   .reminder {
@@ -969,7 +976,7 @@ td {
   }
 
   .card_placeholder {
-    width: 100px;
+    width: 90px;
     height: auto;
   }
 
@@ -1008,7 +1015,9 @@ td {
 
   #stack_number {
     position: absolute;
-    right: 40%
+    right: 39%;
+    font-size: 0.8em;
+    top: 10px;
   }
 
   #hidden_card {
@@ -1025,6 +1034,7 @@ td {
 
   #doubt {
     margin-bottom: 10px;
+    width: 70% !important;
   }
 
   .padded {
@@ -1061,6 +1071,10 @@ td {
   and (orientation: landscape) { 
     * {
       touch-action: manipulation;
+    }
+
+    .card-choice-content {
+        max-width: 90% !important;
     }
 
     .selected-cards-n {
@@ -1224,6 +1238,10 @@ td {
     position: initial;
   }
 
+  .card-choice-content {
+    max-width: 90% !important;
+  }
+
   .toggle-mobile-button-wrapper {
     margin-top: 10px;
     position: absolute;
@@ -1310,4 +1328,75 @@ td {
   #doubt {
     margin-bottom: 10px;
   }
+}
+
+@media (min-width: 1920px) {
+    html, body {
+        font-size: 1.2em !important;
+    }
+
+    .player_name {
+        padding-top: 8px;
+    }
+
+    .mt-desktop {
+        margin-top: 1em;
+    }
+
+    .less-mt-desktop {
+        margin-top: 0.5em;
+    }
+
+    .toggle-mobile-button-wrapper {
+        margin-top: 25px;
+    }
+
+    .card_in_hand {
+        width: 90px;
+        height: auto;
+    }
+
+    .player_placeholder {
+        width: 95px;
+        height: auto;
+    }
+
+    .card_placeholder {
+        width: 100px;
+    }
+
+    .reaction_emoji {
+        width: 35px;
+        height: auto;
+    }
+
+    .card-grid {
+        margin: 40px !important;
+      }
+
+    .card_icon {
+        width: 35px;
+        height: auto;
+      }
+}
+
+@media screen 
+  and (min-device-width: 1200px) 
+  and (max-device-width: 1900px) 
+  and (-webkit-min-device-pixel-ratio: 1) { 
+    .h-25 {
+        padding-top: 7px !important;
+    }
+
+    .mt-desktop {
+        margin-top: 1em;
+    }
+
+    .less-mt-desktop {
+        margin-top: 0.5em;
+    }
+
+    .backgrounded-text {
+        margin-bottom: 0.5rem !important
+    }
 }

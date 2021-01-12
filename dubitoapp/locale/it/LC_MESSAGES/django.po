@@ -184,8 +184,8 @@ msgid "dubitare"
 msgstr "dubitare"
 
 #: templates/newhome.html:197
-msgid "dell'ultimo che ha messo giù carte. Cliccando su"
-msgstr "dell'ultimo che ha messo giù carte. Cliccando su"
+msgid "dell'ultimo che ha messo giù carte, se pensa che abbia mentito. Cliccando su"
+msgstr "dell'ultimo che ha messo giù carte, se pensa che abbia mentito. Cliccando su"
 
 #: templates/newhome.html:197
 msgid "Dubito!"
@@ -194,14 +194,14 @@ msgstr "Dubito!"
 #: templates/newhome.html:198
 msgid ""
 "vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva "
-"mentito, riprenderà tutte le carte che sono giù,"
-msgstr "vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva mentito, riprenderà tutte le carte che sono giù,"
+"mentito, riprenderà tutte le carte che sono sul tavolo,"
+msgstr "vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva mentito, riprenderà tutte le carte che sono sul tavolo,"
 
 #: templates/newhome.html:199
 msgid ""
 "altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da "
-"chi dei due ha vinto lo scontro."
-msgstr "altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da chi dei due ha vinto lo scontro."
+"chi dei due ha vinto lo scontro. Il primo giocatore che rimane senza carte vince!"
+msgstr "altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da chi dei due ha vinto lo scontro. Il primo giocatore che rimane senza carte vince!"
 
 #: templates/newhome.html:219
 msgid ""

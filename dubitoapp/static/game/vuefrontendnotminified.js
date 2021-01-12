@@ -141,7 +141,7 @@ let vue = new Vue({
         case "doubt":
           // console.log(data.event_specifics)
           if (data.event_specifics.who_doubted_number != data.my_player_number) {
-            self.set_player_text(data.event_specifics.who_doubted_number, false, "Dubito!")
+            self.set_player_text(data.event_specifics.who_doubted_number, false, window.gettext("Dubito!"))
           }
           surprise_sound.play()
           self.uncovered_stack = data.event_specifics.whole_stack
