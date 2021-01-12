@@ -304,3 +304,6 @@ msgstr "Play again"
 
 msgid "Gioca"
 msgstr "Play"
+
+msgid "La prima app per giocare online a Dubito!"
+msgstr "The first app that allows you to play Cheat (aka I Doubt It) online!"

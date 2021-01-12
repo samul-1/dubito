@@ -293,3 +293,6 @@ msgstr "Gioca ancora"
 
 msgid "Gioca"
 msgstr "Gioca"
+
+msgid "La prima app per giocare online a Dubito!"
+msgstr "La prima app per giocare online a Dubito!"
