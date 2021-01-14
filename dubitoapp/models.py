@@ -18,6 +18,8 @@ class Game(models.Model):
     has_begun = models.BooleanField(default=False)
     winning_player = models.IntegerField(default=-1)  # contains the number of a player that currently has 0 cards
     has_been_won = models.BooleanField(default=False)
+    restarted = models.IntegerField(default=0)  # counts how many time the game has been restarted
+    events = models.IntegerField(default=0)  # counts the number of state-changing events that took place during game
 
     def __str__(self):
         return str(self.code)
@@ -32,6 +34,8 @@ class Game(models.Model):
         players = Player.objects.filter(game_id=self)
         CardsInHand.objects.filter(player_id__in=players).delete()
 
+        self.events = 0
+        self.restarted += 1
         self.player_current_turn = random.randint(1, self.number_of_players)
         self.winning_player = -1
         self.has_been_won = False

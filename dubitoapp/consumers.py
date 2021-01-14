@@ -13,6 +13,7 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def send_new_state_to_all_players(self, event_specifics):
         # sends all online players an updated copy of the game state
         # the event_specifics dict contains relevant information about the last event in the game
+        await self.increment_event_count(self.game_id)
         for player in await sync_to_async(list)(Player.objects.filter(Q(game_id=self.game_id))):
             await self.channel_layer.group_send(
                 self.game_group_name,
@@ -721,4 +722,10 @@ class GameConsumer(AsyncWebsocketConsumer):
     def increment_joined_players(self, game_id):
         game = Game.objects.get(pk=game_id)
         game.joined_players += 1
+        game.save()
+
+    @database_sync_to_async
+    def increment_event_count(self, game_id):
+        game = Game.objects.get(pk=game_id)
+        game.events += 1
         game.save()
