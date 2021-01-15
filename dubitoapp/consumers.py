@@ -110,22 +110,27 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         if(await self.check_card_possession(self.game_id, self.player_id, cards)):
             # player is illegally trying to play cards they don't have
+            logging.warning("trying to place cards they don't have")
             return
 
         if await self.is_locked(self.game_id):
             # someone else got here first
+            logging.warning("game is locked")
             return
 
         if await self.get_current_turn(self.game_id) != await self.get_player_number(self.player_id):
             # wrong player trying to play
+            logging.warning("wrong turn")
             return
 
         if not len(cards):
             # trying to place 0 cards
+            logging.warning("trying to place 0 cards")
             return
 
         # You can't start two consecutive rounds with the same card
         if int(claimed_card) == await self.get_current_card(self.game_id):
+            logging.info("trying to place same rank two consecutive turns")
             return
 
         await self.lock_game(self.game_id)  # prevent further action from other players
@@ -170,14 +175,17 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def doubt(self):
         if await self.is_locked(self.game_id):
             # someone else got here first
+            logging.warning("game is locked")
             return
 
         if await self.get_player_last_turn(self.game_id) is None or await self.get_last_amount_played(self.game_id) == 0 or await self.get_stacked_cards(self.game_id) is None:
             # trying to doubt before any card has been placed
+            logging.warning("trying to doubt before any cards placed")
             return
 
         if self.player_id == await self.get_player_last_turn(self.game_id):
             # player doubted themselves
+            logging.warning("doubted themselves")
             return
 
         await self.lock_game(self.game_id)  # prevent further action from other players
@@ -206,26 +214,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         if(outcome):
             winner = who_doubted
             loser = last_player
-            # await self.add_to_hand(self.game_id, last_player, whole_stack)
-            # for i in range(1, 14):
-            #     if await self.get_amount_of_card_in_hand(last_player, str(i)) == 8: # if they have 8 copies of a card, discard those
-            #         await self.remove_all_cards(last_player, str(i))
-            #         copies_removed.append(str(i))
-            #         if not await self.get_number_of_cards_in_hand(last_player): # player has no more cards
-            #             await self.set_winning_player(self.game_id, await self.get_player_number(last_player))
-            # await self.set_new_turn(self.game_id, await self.get_player_number(who_doubted))
-
         else:
             winner = last_player
             loser = who_doubted
-            # await self.add_to_hand(self.game_id, who_doubted, whole_stack)
-            # for i in range(1, 14):
-            #     if await self.get_amount_of_card_in_hand(who_doubted, str(i)) == 8: # if they have 8 copies of a card, discard those
-            #         await self.remove_all_cards(who_doubted, str(i))
-            #         copies_removed.append(str(i))
-            #         if not await self.get_number_of_cards_in_hand(who_doubted): # player has no more cards
-            #             await self.set_winning_player(self.game_id, await self.get_player_number(who_doubted))
-            # await self.set_new_turn(self.game_id, await self.get_player_number(last_player))
 
         # add the whole stack to loser player's hand
         await self.add_to_hand(self.game_id, loser, whole_stack)
@@ -256,26 +247,30 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send_new_state_to_all_players(event_specifics)
         await self.unlock_game(self.game_id)  # resume normal game flow
         await self.check_current_player_online()  # handle the case where current player isn't online
-    
+
     async def place_cards(self, cards):
         # Sends amount of cards of current number placed and saves placed cards to db
 
         if await self.check_card_possession(self.game_id, self.player_id, cards):
             # player is illegally trying to play cards they don't have
+            logging.warning("trying to place cards they don't have")
             return
-        
+
         if await self.is_locked(self.game_id):
             # someone else got here first
+            logging.warning("game is locked")
             return
 
         if await self.get_current_turn(self.game_id) != await self.get_player_number(self.player_id):
             # wrong player trying to play
+            logging.warning("wrong turn")
             return
-        
+
         if not len(cards):
             # trying to place 0 cards
+            logging.warning("trying to place 0 cards")
             return
-        
+
         await self.lock_game(self.game_id)  # prevent further action from other players
 
         # place selected cards onto the stack and remove them from user's hand
@@ -332,8 +327,9 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def restart_game(self):
         # Called when a player wants to play again at the end of a game
-        #if not await self.game_has_been_won(self.game_id):
-            # return
+        if not await self.game_has_been_won(self.game_id):
+            logging.warning("trying to restart game before it's ended")
+            return
 
         await self.restart_game_routine(self.game_id)
 
