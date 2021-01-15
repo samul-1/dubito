@@ -20,6 +20,7 @@ class Game(models.Model):
     has_been_won = models.BooleanField(default=False)
     restarted = models.IntegerField(default=0)  # counts how many time the game has been restarted
     events = models.IntegerField(default=0)  # counts the number of state-changing events that took place during game
+    is_public = models.BooleanField(default=False)  # True if game was created automatically through matchmaking
 
     def __str__(self):
         return str(self.code)
@@ -85,7 +86,7 @@ class Game(models.Model):
             idx = idx + 1
 
 class Player(models.Model):
-    game_id = models.ForeignKey(Game, on_delete=models.CASCADE)
+    game_id = models.ForeignKey(Game, on_delete=models.CASCADE, null=True, default=None)
     player_number = models.IntegerField(default=1)
     name = models.CharField(max_length=10)
     is_online = models.BooleanField(default=False)

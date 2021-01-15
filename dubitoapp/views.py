@@ -46,6 +46,10 @@ def create_new_game(request):
         else:
             return JsonResponse(form.errors.as_json(), safe=False, status=400)
     else:
+        # set a dummy player id in player's session. this is needed to make channels session persistence work (for matchmaking)
+        if('player_id' not in request.session):
+            request.session['player_id'] = 0
+
         create_form = GameForm(initial={'number_of_players': '2'})
         join_form = JoinForm()
         feedback_form = FeedbackForm()
@@ -92,6 +96,7 @@ def join_game(request):
 def game(request, game_id):
     err_str = ''
     this_game = get_object_or_404(Game, pk=game_id)
+    print(request.session.keys())
 
     # if game is over, redirect to home
     if this_game.has_been_won:

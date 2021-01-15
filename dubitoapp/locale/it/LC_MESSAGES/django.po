@@ -296,3 +296,42 @@ msgstr "Gioca"
 
 msgid "La prima app per giocare online a Dubito!"
 msgstr "La prima app per giocare online a Dubito!"
+
+msgid "Partita veloce"
+msgstr "Partita veloce"
+
+msgid "Stiamo cercando giocatori online."
+msgstr "Stiamo cercando giocatori online."
+
+msgid "Attendi"
+msgstr "Attendi"
+
+msgid "Cerca giocatori"
+msgstr "Cerca giocatori"
+
+msgid "Hai trovato un giocatore!"
+msgstr "Hai trovato un giocatore!"
+
+msgid "La partita inizierà tra"
+msgstr "La partita inizierà tra"
+
+msgid "secondo"
+msgstr "secondo"
+
+msgid "secondi"
+msgstr "secondi"
+
+msgid "Come effettuare una partita veloce"
+msgstr "Come effettuare una partita veloce"
+
+msgid "e scegli un nome"
+msgstr "e scegli un nome"
+
+msgid "e attendi"
+msgstr "e attendi"
+
+msgid "Il sistema di partite veloci ti permette di giocare online con altri utenti che non conosci. Se ci sono pochi utenti online, potresti non incontrare nessuno. Se invece vuoi giocare con i tuoi amici, segui le istruzioni qui sotto per creare una partita."
+msgstr "Il sistema di partite veloci ti permette di giocare online con altri utenti che non conosci. Se ci sono pochi utenti online, potresti non incontrare nessuno. Se invece vuoi giocare con i tuoi amici, segui le istruzioni qui sotto per creare una partita."
+
+msgid "Il tuo nome contiene caratteri non consentiti."
+msgstr "Il tuo nome contiene caratteri non consentiti."

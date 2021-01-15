@@ -1,133 +1,148 @@
 <!DOCTYPE html>
 {% load i18n %}
 <html>
-  <head>
-      <!-- Global site tag (gtag.js) - Google Analytics -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-8CBFR5FWBQ"></script>
-      <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
 
-        gtag('config', 'G-8CBFR5FWBQ');
-      </script>
-      {% load static %}
-      <!-- Translation -->
-      <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-      {% load urls %}
-      {% get_available_languages as LANGUAGES %}
-      {% for language_code, language_name in LANGUAGES %}
-      <link
-          rel="alternate"
-          hreflang="{{ language_code }}"
-          href="{% translate_url language_code %}" />
-      {% endfor %}
-      <link
-      rel="alternate"
-      hreflang="x-default"
-      href="{% translate_url 'en-us' %}" />
+<head>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8CBFR5FWBQ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
 
-      <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
-      
-      <meta name="description" content="{% trans 'La prima app per giocare online a Dubito!' %}" />
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
 
-      <meta name="keywords" content="carte, gioco di carte, dubito, dubito online, gratis, giochi di carte online, giochi gratis, giochi online, poker, card game, asso, ace, scala, casino, carta, playing card game, playing card, cards, carte da gioco, carta da gioco, browser game, online game, multiplayer, partita, bluff, balle, bullshit, b.s., I doubt it, doubt, free card game, multilanguage app, free, cheat, cheat card game, play cheat online">
-      
-      <link rel="shortcut icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
-      <link rel="icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
+    gtag('config', 'G-8CBFR5FWBQ');
+  </script>
+  {% load static %}
+  <!-- Translation -->
+  <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+  {% load urls %}
+  {% get_available_languages as LANGUAGES %}
+  {% for language_code, language_name in LANGUAGES %}
+  <link rel="alternate" hreflang="{{ language_code }}" href="{% translate_url language_code %}" />
+  {% endfor %}
+  <link rel="alternate" hreflang="x-default" href="{% translate_url 'en-us' %}" />
 
-      <!-- Icons -->
-      <script src="https://kit.fontawesome.com/c4a4310769.js" crossorigin="anonymous"></script>
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
 
-      <!-- CSS only -->
-      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+  <meta name="description" content="{% trans 'La prima app per giocare online a Dubito!' %}" />
 
-      <!-- jQuery -->
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+  <meta name="keywords"
+    content="carte, gioco di carte, dubito, dubito online, gratis, giochi di carte online, giochi gratis, giochi online, poker, card game, asso, ace, scala, casino, carta, playing card game, playing card, cards, carte da gioco, carta da gioco, browser game, online game, multiplayer, partita, bluff, balle, bullshit, b.s., I doubt it, doubt, free card game, multilanguage app, free, cheat, cheat card game, play cheat online">
 
-      <!-- axios -->
-      <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link rel="shortcut icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
+  <link rel="icon" href="{% static 'game/img/favicon.ico' %}" type="image/x-icon">
 
-      <!-- Static resources -->
-      <script src="{% static 'game/home.js' %}"></script>
-      <link rel="stylesheet" href="{% static 'game/page_style.css' %}" />
+  <!-- Icons -->
+  <script src="https://kit.fontawesome.com/c4a4310769.js" crossorigin="anonymous"></script>
 
-      <title>Dubito!</title>
+  <!-- CSS only -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 
-      <style>
-          .modal-content {
-              color: black;
-          }
+  <!-- jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+    integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
+  </script>
 
-          #main-container-grid {
-            padding: 20px;
-            grid-template-rows: 1fr 2fr 1fr;
-            display: grid;
-            height: 100vh;
-            grid-row-gap: 1em;
-          }
+  <!-- axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-          #grid-row1 {
-            justify-self: center;
-          }
+  <!-- vue.js -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 
-          #grid-row2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(auto, 500px));
-            align-items: center;
-            justify-items: stretch;
-            grid-row-gap: 1em;
-            grid-column-gap: 1em;
-            justify-content: space-evenly;
-          }
+  <!-- Static resources -->
+  <script src="{% static 'game/home.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'game/page_style.css' %}" />
 
-          #grid-row3 {
-            display: grid;
-            align-items: end;
-            grid-template-columns: 1fr 1fr;
-          }
+  <title>Dubito!</title>
 
-          #instructions {
-            justify-self: flex-start;
-          }
+  <style>
+    .modal-content {
+      color: black;
+    }
 
-          #feedback {
-            justify-self: flex-end;
-          }
-      </style>
-  </head>
-  <body>
+    #main-container-grid {
+      padding: 20px;
+      grid-template-rows: 1fr 2fr 0.65fr;
+      display: grid;
+      height: 100vh;
+      grid-row-gap: 1em;
+    }
+
+    #grid-row1 {
+      justify-self: center;
+    }
+
+    #grid-row2 {
+      display: grid;
+      grid-template-columns: 0.5fr;
+      align-items: center;
+      justify-items: stretch;
+      grid-row-gap: 3em;
+      grid-column-gap: 1em;
+      justify-content: center;
+    }
+
+    #grid-row3 {
+      display: grid;
+      align-items: end;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    #instructions {
+      justify-self: flex-start;
+    }
+
+    #feedback {
+      justify-self: flex-end;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
     <div id="main-container-grid">
-        <div id="grid-row1">
-            <h1 class="fancy-writing">Dubito!</h1>
+      <div id="grid-row1">
+        <h1 class="fancy-writing">Dubito!</h1>
+      </div>
+      <div id="grid-row2">
+        <button type="button" class="btn btn-red btn-bordered btn-vertically-padded" data-toggle="modal"
+        data-target="#matchmakingModal">
+          <span class="h3">
+            <i class="fas fa-bolt"></i> &nbsp;{% trans 'Partita veloce' %}
+          </span>
+        </button>
+        <button type="button" class="btn btn-red btn-bordered btn-vertically-padded" data-toggle="modal"
+          data-target="#createModal">
+          <span class="h3">
+            <i class="fas fa-plus-circle"></i> &nbsp;{% trans 'Crea partita' %}
+          </span>
+        </button>
+        <button type="button" class="btn btn-red btn-bordered btn-vertically-padded" data-toggle="modal"
+          data-target="#joinModal">
+          <span class="h3">
+            <i class="fas fa-user-plus"></i> &nbsp;{% trans 'Unisciti a una partita' %}
+          </span>
+        </button>
+      </div>
+      <div id="grid-row3">
+        <div id="instructions">
+          <button type="button" class="btn btn-red btn-bordered" data-toggle="modal" data-target="#instructionsModal">
+            <i class="fas fa-question-circle"></i> &nbsp;{% trans 'Come si gioca?' %}
+          </button>
         </div>
-        <div id="grid-row2">
-                <button type="button" class="btn btn-red btn-bordered btn-vertically-padded" data-toggle="modal" data-target="#createModal">
-                    <span class="h3">
-                        <i class="fas fa-plus-circle"></i> &nbsp;{% trans 'Crea partita' %}
-                    </span>
-                </button>
-                <button type="button" class="btn btn-red btn-bordered btn-vertically-padded" data-toggle="modal" data-target="#joinModal">
-                    <span class="h3">
-                        <i class="fas fa-user-plus"></i> &nbsp;{% trans 'Unisciti a una partita' %}
-                    </span>
-                </button> 
+        <div id="feedback">
+          <button type="button" class="btn btn-red btn-bordered" data-toggle="modal" data-target="#feedbackModal">
+            <i class="fas fa-comments"></i> &nbsp;{% trans 'Contattaci' %}
+          </button>
         </div>
-        <div id="grid-row3">
-          <div id="instructions">
-            <button type="button" class="btn btn-red btn-bordered" data-toggle="modal" data-target="#instructionsModal">
-              <i class="fas fa-question-circle"></i> &nbsp;{% trans 'Come si gioca?' %}
-            </button>
-          </div>
-          <div id="feedback">
-            <button type="button" class="btn btn-red btn-bordered" data-toggle="modal" data-target="#feedbackModal">
-              <i class="fas fa-comments"></i> &nbsp;{% trans 'Contattaci' %}
-            </button>
-          </div>
-        </div>
+      </div>
     </div>
-
+  
     <!-- Create modal -->
     <div class="modal" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
@@ -138,24 +153,25 @@
           <div class="modal-body modal-padded text-center">
             <div id="phase1">
               <form action="/game/create" method="post">
-                  {% csrf_token %}
-                  <!--{{ form.as_p }}-->
-                  <h2>{% trans 'Numero di giocatori' %}</h2>
-                  <p>
-                    {{ create_form.number_of_players }}
-                  </p>
-                  <h2>{% trans 'Scegli un nome' %}</h2>
-                  <p>
-                    {{ create_form.creator_name }}
-                  </p>
-                  <input onclick="createSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Crea partita' %}">
+                {% csrf_token %}
+                <!--{{ form.as_p }}-->
+                <h2>{% trans 'Numero di giocatori' %}</h2>
+                <p>
+                  {{ create_form.number_of_players }}
+                </p>
+                <h2>{% trans 'Scegli un nome' %}</h2>
+                <p>
+                  {{ create_form.creator_name }}
+                </p>
+                <input onclick="createSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Crea partita' %}">
               </form>
             </div>
             <div id="phase2">
               <h3>{% trans 'Partita creata con successo! Il codice partita è' %}</h3>
               <span id="gamecode" class="big"></span>
               <h3>{% trans 'Comunicalo agli altri giocatori per iniziare a giocare.' %}</h3>
-              <p>{% trans 'La partita inizierà non appena tutti i giocatori saranno entrati. Attendiamo' %}<span id="animatedEllipsis">&nbsp;&nbsp;&nbsp;</span></p>
+              <p>{% trans 'La partita inizierà non appena tutti i giocatori saranno entrati. Attendiamo' %}<span
+                  id="animatedEllipsis">&nbsp;&nbsp;&nbsp;</span></p>
               <div>
                 <p>{% trans 'Giocatori entrati' %} <span id="user_count">1</span>/<span id="total_users"></span></p>
               </div>
@@ -164,7 +180,56 @@
         </div>
       </div>
     </div>
-
+  
+    <!-- Matchmaking modal -->
+    <div class="modal" id="matchmakingModal" tabindex="-1" role="dialog" aria-labelledby="matchmakingModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header modal-padded">
+            <h1 class="modal-title" id="matchmakingModalLabel">{% trans 'Partita veloce' %}</h1>
+          </div>
+          <div class="modal-body modal-padded text-center">
+            <div v-if="!player_found && searching">
+              <h2>
+                {% trans 'Stiamo cercando giocatori online.' %}
+              </h2>
+              <h4>
+                {% trans 'Attendi' %}<span class="vue-ellipsis" v-html="ellipsis"></span>
+              </h4>
+            </div>
+            <div v-if="!searching">
+              <h2>{% trans 'Scegli un nome' %}</h2>
+              <p>
+                <input
+                type="text"
+                maxlength="10"
+                v-model="player_name"
+                @keyup.enter="enter_matchmaking()"
+                />
+                <ul class="form_error_list" v-if="matchmaking_errors.length">
+                  <li class="form_error" v-for="error in matchmaking_errors">
+                    ${ error }
+                  </li>
+                </ul>
+              </p>
+              <button @click="enter_matchmaking()" class="btn btn-red">
+                {% trans 'Cerca giocatori' %}
+              </button>
+          </div>
+          <div v-if="timer_started">
+            <h2>
+              {% trans 'Hai trovato un giocatore!' %}
+            </h2>
+            <h4>
+              {% trans 'La partita inizierà tra' %} ${ timer } ${ seconds }
+            </h4>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
     <!-- Join modal -->
     <div class="modal" id="joinModal" tabindex="-1" role="dialog" aria-labelledby="joinModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
@@ -172,30 +237,31 @@
           <div class="modal-header modal-padded">
             <h1 class="modal-title" id="joinModalLabel">{% trans 'Unisciti a una partita' %}</h1>
             <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button> -->
+                <span aria-hidden="true">&times;</span>
+              </button> -->
           </div>
           <div class="modal-body modal-padded text-center">
             <form action="/game/join_game" method="post">
-                {% csrf_token %}
-                <!--{{ join_form.as_p }}-->
-                <h2>{% trans 'Codice partita' %}</h2>
-                <p>
-                  {{ join_form.code }}
-                </p>
-                <h2>{% trans 'Scegli un nome' %}</h2>
-                <p>
-                  {{ join_form.name }}
-                </p>
-                <input onclick="joinSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Entra' %}">
+              {% csrf_token %}
+              <!--{{ join_form.as_p }}-->
+              <h2>{% trans 'Codice partita' %}</h2>
+              <p>
+                {{ join_form.code }}
+              </p>
+              <h2>{% trans 'Scegli un nome' %}</h2>
+              <p>
+                {{ join_form.name }}
+              </p>
+              <input onclick="joinSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Entra' %}">
             </form>
           </div>
         </div>
       </div>
     </div>
-
-     <!-- Instructions modal -->
-     <div class="modal" id="instructionsModal" tabindex="-1" role="dialog" aria-labelledby="howtoplayModalLabel" aria-hidden="true">
+  
+    <!-- Instructions modal -->
+    <div class="modal" id="instructionsModal" tabindex="-1" role="dialog" aria-labelledby="howtoplayModalLabel"
+      aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
@@ -207,13 +273,25 @@
           <div class="modal-body modal-padded">
             <div class="section">
               <div class="row">
+                <div class="col-12">
+                  <h2>{% trans 'Come effettuare una partita veloce' %}</h2>
+                  <ol>
+                    <li>{% trans 'Clicca su' %} <em>{% trans 'Partita veloce' %}</em> {% trans 'e scegli un nome' %}.</li>
+                    <li>{% trans 'Clicca su' %} <em>{% trans 'Cerca giocatori' %}</em> {% trans 'e attendi' %}.</li>
+                  </ol>
+                  <p>
+                    {% trans 'Il sistema di partite veloci ti permette di giocare online con altri utenti che non conosci. Se ci sono pochi utenti online, potresti non incontrare nessuno. Se invece vuoi giocare con i tuoi amici, segui le istruzioni qui sotto per creare una partita.' %}
+                  </p>
+                </div>
                 <div class="col-12 col-lg-6">
                   <h2>{% trans 'Come creare una partita' %}</h2>
                   <ol>
                     <li>{% trans 'Clicca su' %} <em>{% trans 'Crea partita' %}</em></li>
                     <li>{% trans 'Scegli il numero di giocatori' %} {% trans '(da 2 a 6)' %}</li>
                     <li>{% trans 'Scegli il tuo nome e conferma' %}</li>
-                    <li>{% trans 'Comunica agli altri giocatori il codice a 5 cifre che appare sullo schermo e attendi!' %}</li>
+                    <li>
+                      {% trans 'Comunica agli altri giocatori il codice a 5 cifre che appare sullo schermo e attendi!' %}
+                    </li>
                   </ol>
                 </div>
                 <div class="col-12 col-lg-6">
@@ -237,7 +315,9 @@
                 <strong>{% trans 'Ricorda che puoi mentire' %}</strong> {% trans 'e mettere giù qualsiasi carta!' %}
               </p>
               <p>
-                {% trans 'Un giocatore può' %} <strong>{% trans 'dubitare' %}</strong> {% trans "dell'ultimo che ha messo giù carte, se pensa che abbia mentito. Cliccando su" %} <em>{% trans 'Dubito!' %}</em>
+                {% trans 'Un giocatore può' %} <strong>{% trans 'dubitare' %}</strong>
+                {% trans "dell'ultimo che ha messo giù carte, se pensa che abbia mentito. Cliccando su" %}
+                <em>{% trans 'Dubito!' %}</em>
                 {% trans 'vengono scoperte le ultime carte messe giù. Se il giocatore precedente aveva mentito, riprenderà tutte le carte che sono sul tavolo,' %}
                 {% trans 'altrimenti sarà colui che ha dubitato a riprenderle. Il gioco ricomincia da chi dei due ha vinto lo scontro. Il primo giocatore che rimane senza carte vince!' %}
               </p>
@@ -246,9 +326,10 @@
         </div>
       </div>
     </div>
-
+  
     <!-- Feedback modal -->
-    <div class="modal" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel"
+      aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
@@ -261,21 +342,21 @@
             <div id="sendFeedback">
               <p>{% trans 'Hai trovato un bug nel gioco, oppure vuoi lasciare un feedback? Sei nel posto giusto!' %}</p>
               <form action="/game/feedback" method="post">
-                  {% csrf_token %}
-                  <h3 class="required">{% trans 'Il tuo nome' %}</h3>
-                  <p>
-                    {{ feedback_form.sender_name }}
-                  </p>
-                  <h3 style="margin-bottom: 0">{% trans 'Indirizzo email' %}</h3>
-                  <p class="emailNotice">{% trans '(opzionale, se vuoi essere ricontattato)' %}</p>
-                  <p>
-                    {{ feedback_form.email }}
-                  </p>
-                  <h3 class="required">{% trans 'Messaggio' %}</h3>
-                  <p>
-                    {{ feedback_form.message }}
-                  </p>
-                  <input onclick="feedbackSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Invia' %}">
+                {% csrf_token %}
+                <h3 class="required">{% trans 'Il tuo nome' %}</h3>
+                <p>
+                  {{ feedback_form.sender_name }}
+                </p>
+                <h3 style="margin-bottom: 0">{% trans 'Indirizzo email' %}</h3>
+                <p class="emailNotice">{% trans '(opzionale, se vuoi essere ricontattato)' %}</p>
+                <p>
+                  {{ feedback_form.email }}
+                </p>
+                <h3 class="required">{% trans 'Messaggio' %}</h3>
+                <p>
+                  {{ feedback_form.message }}
+                </p>
+                <input onclick="feedbackSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Invia' %}">
               </form>
             </div>
             <div id="feedbackReceived">
@@ -288,9 +369,13 @@
         </div>
       </div>
     </div>
-    <script>
-      const gameurl = "{% url 'game' 0 %}".slice(0,-2)
-      //$('#pincode').pincodeInput({inputs:5});
-    </script>
-  </body>
+  </div>
+  
+  <script>
+    const gameurl = "{% url 'game' 0 %}".slice(0, -2)
+    //$('#pincode').pincodeInput({inputs:5});
+  </script>
+  <script src="{% static 'game/matchmakingfrontend.js' %}"></script>
+</body>
+
 </html>

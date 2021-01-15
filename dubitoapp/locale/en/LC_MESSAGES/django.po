@@ -307,3 +307,42 @@ msgstr "Play"
 
 msgid "La prima app per giocare online a Dubito!"
 msgstr "The first app that allows you to play Cheat (aka I Doubt It) online!"
+
+msgid "Partita veloce"
+msgstr "Quick game"
+
+msgid "Stiamo cercando giocatori online."
+msgstr "Looking for online players."
+
+msgid "Attendi"
+msgstr "Hold on"
+
+msgid "Cerca giocatori"
+msgstr "Find players"
+
+msgid "Hai trovato un giocatore!"
+msgstr "We found a player!"
+
+msgid "La partita inizierà tra"
+msgstr "Game will start in"
+
+msgid "secondo"
+msgstr "second"
+
+msgid "secondi"
+msgstr "seconds"
+
+msgid "Come effettuare una partita veloce"
+msgstr "How to play a quick game"
+
+msgid "e scegli un nome"
+msgstr "and pick a name"
+
+msgid "e attendi"
+msgstr "and wait"
+
+msgid "Il sistema di partite veloci ti permette di giocare online con altri utenti che non conosci. Se ci sono pochi utenti online, potresti non incontrare nessuno. Se invece vuoi giocare con i tuoi amici, segui le istruzioni qui sotto per creare una partita."
+msgstr "The quick game system allows you to play against random players. If there aren't many users online, you might temporarily not find anyone to play with. If you want to play with your friends, follow the instructions below to create a private game."
+
+msgid "Il tuo nome contiene caratteri non consentiti."
+msgstr "Your name contains characters that aren't allowed."

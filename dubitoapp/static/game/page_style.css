@@ -17,6 +17,7 @@ body {
     color: white !important;
 }
 
+
 .required:after {
   color: red;
   content: '*';
@@ -88,6 +89,11 @@ ol li {
   letter-spacing: -3px;
 }
 
+.vue-ellipsis {
+  font-family: monospace;
+  letter-spacing: -4px;
+}
+
 .btn-red {
   background-color: #330e11;
   color: white;
@@ -135,9 +141,6 @@ ol li {
   box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.75);
 }
 
-.btn-90-width {
-  width: 90%;
-}
 
 .btn-vertically-padded {
   padding-top: 22px !important;
@@ -175,16 +178,39 @@ ol li {
     padding: 20px;
 }
 
-@media only screen and (max-width: 800px) {
-  #row1 {
-    height: 32%;
+/* iPhone 4/5/6/7/8 portrait, Galaxy Fold */
+@media only screen 
+  and (min-device-width: 375px) 
+  and (max-device-width: 667px) 
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: portrait),
+  only screen 
+  and (min-device-width: 320px) 
+  and (max-device-width: 568px)
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: portrait),
+  screen 
+  and (device-width: 280px) 
+  and (device-height: 653px) 
+  and (-webkit-device-pixel-ratio: 3) 
+  and (orientation: portrait) {
+    #grid-row2 {
+      grid-template-columns: 1fr !important;
+    }
+
+    #main-container-grid {
+      grid-template-rows: 1fr 2fr 0.9fr !important;
+      height: 92vh !important;
+    }
   }
-  #row2 {
-    height: 60%;
-  }
-  #row3 {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
+
+/* iPad portrait */
+@media only screen 
+and (min-device-width: 768px) 
+and (max-device-width: 1024px) 
+and (orientation: portrait) 
+and (-webkit-min-device-pixel-ratio: 2) {
+  #main-container-grid {
+    grid-template-rows: 1fr 2fr 1fr;
   }
 }

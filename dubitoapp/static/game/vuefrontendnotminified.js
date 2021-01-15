@@ -116,7 +116,7 @@ let vue = new Vue({
 
   created() {
     const self = this
-    gameSocket.onmessage = function (e) {
+    this.socket.onmessage = function (e) {
       data = JSON.parse(e.data)
       // console.log(data)
       // transfer received state to buffer

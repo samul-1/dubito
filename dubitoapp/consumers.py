@@ -209,7 +209,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         whole_stack = await self.get_stacked_cards(self.game_id)
         who_doubted = self.player_id
-        last_player = await self.get_player_last_turn(self.game_id) # this is who was doubted
+        last_player = await self.get_player_last_turn(self.game_id)  # this is who was doubted
 
         if(outcome):
             winner = who_doubted
@@ -288,7 +288,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         event_specifics = {
             'type': 'cards_placed',
             'by_who': await self.get_player_number(self.player_id),
-            'number_of_cards_placed': len(cards), 
+            'number_of_cards_placed': len(cards),
         }
 
         await self.increment_turn(self.game_id)
@@ -729,4 +729,109 @@ class GameConsumer(AsyncWebsocketConsumer):
     def increment_event_count(self, game_id):
         game = Game.objects.get(pk=game_id)
         game.events += 1
+        game.save()
+
+class MatchmakingConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        if len(self.scope['url_route']['kwargs']['player_name']) > 10:
+            return
+
+        self.player_name = self.scope['url_route']['kwargs']['player_name']  # user-supplied name
+        self.group = 'matchmaking_pool'
+
+        # Join room group
+        await self.channel_layer.group_add(
+            self.group,
+            self.channel_name
+        )
+
+        logging.info(self.player_name + " has started matchmaking")
+
+        player = await self.create_new_player(self.player_name)
+        self.scope['session']['player_id'] = player.pk
+        await database_sync_to_async(self.scope["session"].save)()
+        await self.accept()
+
+        # look for an available game
+        available_game = await self.get_available_game(less_than_joined_players=6)
+
+        # join user to available game and send user its id
+        if available_game is not None:
+            await self.join_user_to_game(player, available_game)
+            # inform every player associated to this game that a new player joined
+            await self.channel_layer.group_send(
+                self.group,
+                {
+                    'type': 'player_found_handler',
+                    'game_id': available_game.pk,
+                }
+            )
+            if available_game.joined_players == 2:
+                # as soon as the second player joins, schedule dealing of cards
+                loop = asyncio.get_event_loop()
+                loop.create_task(self.deal_cards_task(available_game.pk))
+        # create a new game
+        else:
+            new_game = await self.create_public_game()
+            await self.join_user_to_game(player, new_game)
+
+    async def player_found_handler(self, event):
+        if self.scope['session']['player_id'] not in await sync_to_async(list)(await self.get_joined_player_ids(event['game_id'])):
+            # only send information to players joined to this game
+            print("nope")
+            return
+
+        await self.send(text_data=json.dumps({
+            'type': 'player_found',
+            'game_id': event['game_id'],
+        }))
+    
+    async def deal_cards_task(self, game_id):
+        print("dealing")
+        await asyncio.sleep(9)
+        await self.call_deal_cards(game_id)
+
+    @database_sync_to_async
+    def create_new_player(self, name):
+        new_player = Player(name=name)
+        new_player.save()
+        return new_player
+
+    @database_sync_to_async
+    def get_available_game(self, less_than_joined_players):
+        # TODO prioritize games with less joined players
+        from random import choice
+        qs = Game.objects.filter(Q(is_public=True) & Q(joined_players__lt=less_than_joined_players))
+        if qs.count() == 0:
+            return None
+        return choice(qs)
+
+    @database_sync_to_async
+    def join_user_to_game(self, player, game):
+        game.joined_players += 1
+        game.number_of_players += 1
+        game.save()
+
+        player.player_number = game.joined_players
+        player.game_id = game
+        player.save()
+
+    @database_sync_to_async
+    def create_public_game(self):
+        new_game = Game(is_public=True, code=0, number_of_players=0, joined_players=0)
+        new_game.save()
+        return new_game
+
+    @database_sync_to_async
+    def get_joined_player_ids(self, game_id):
+        game = Game.objects.get(pk=game_id)
+        return map(lambda p: p.pk, Player.objects.filter(game_id=game))
+
+    @database_sync_to_async
+    def call_deal_cards(self, game_id):
+        import random
+        game = Game.objects.get(pk=game_id)
+        game.deal_cards_to_players()
+        game.is_public = False
+        game.player_current_turn = random.randint(1, game.number_of_players)
         game.save()
