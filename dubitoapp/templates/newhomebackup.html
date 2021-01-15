@@ -59,62 +59,39 @@
           .modal-content {
               color: black;
           }
-
-          #main-container-grid {
-            padding: 20px;
-            grid-template-rows: 1fr 2fr 1fr;
-            display: grid;
-            height: 100vh;
-            grid-row-gap: 1em;
-          }
-
-          #grid-row2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(335px, auto));
-            align-items: center;
-            justify-items: center;
-            grid-row-gap: 1em;
-          }
-
-          #grid-row3 {
-            display: grid;
-            align-items: end;
-            grid-template-columns: 1fr 1fr;
-          }
-
-          #instructions {
-            justify-self: flex-start;
-          }
-
-          #feedback {
-            justify-self: flex-end;
-          }
       </style>
   </head>
   <body>
-    <div id="main-container-grid">
-        <div id="grid-row1">
+    <div class="container-fluid h-100 text-center" id="main_container">
+        <div class="row" id="row1">
             <h1 class="h1-title fancy-writing">Dubito!</h1>
         </div>
-        <div id="grid-row2">
+        <div class="row justify-content-center" id="row2">
+            <div class="col-12 col-lg-5">
                 <button type="button" class="btn btn-red btn-bordered btn-90-width btn-vertically-padded" data-toggle="modal" data-target="#createModal">
-                    <span class="h3">
+                    <p class="h3">
                         <i class="fas fa-plus-circle"></i> &nbsp;{% trans 'Crea partita' %}
-                    </span>
+                    </p>
                 </button>
+            </div>
+            <div class="col-12 col-lg-5">
                 <button type="button" class="btn btn-red btn-bordered btn-90-width btn-vertically-padded" data-toggle="modal" data-target="#joinModal">
-                    <span class="h3">
+                    <p class="h3">
                         <i class="fas fa-user-plus"></i> &nbsp;{% trans 'Unisciti a una partita' %}
-                    </span>
+                    </p>
                 </button> 
+            </div>
         </div>
-        <div id="grid-row3">
-          <div id="instructions">
+        <div class="row" id="row3">
+          <div class="mb-10 col align-self-start">
             <button type="button" class="btn btn-red btn-bordered" data-toggle="modal" data-target="#instructionsModal">
               <i class="fas fa-question-circle"></i> &nbsp;{% trans 'Come si gioca?' %}
             </button>
           </div>
-          <div id="feedback">
+          <div class="col-8 align-self-center">
+
+          </div>
+          <div class="mb-10 col align-self-end">
             <button type="button" class="btn btn-red btn-bordered" data-toggle="modal" data-target="#feedbackModal">
               <i class="fas fa-comments"></i> &nbsp;{% trans 'Contattaci' %}
             </button>

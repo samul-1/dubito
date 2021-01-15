@@ -149,7 +149,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send_new_state_to_all_players(event_specifics)
         await self.unlock_game(self.game_id)  # resume normal game flow
         await self.check_current_player_online()  # handle the case where current player isn't online
-    
+
     async def check_current_player_online(self):
         # verifies the current turn player is onine, and if they aren't, passes turn onto next player
         current_turn_player_number = await self.get_current_turn(self.game_id)
