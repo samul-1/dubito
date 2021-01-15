@@ -74,10 +74,12 @@
 
           #grid-row2 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(335px, auto));
+            grid-template-columns: repeat(auto-fit, minmax(500px, auto));
             align-items: center;
-            justify-items: center;
+            justify-items: stretch;
             grid-row-gap: 1em;
+            grid-column-gap: 1em;
+            justify-content: space-evenly;
           }
 
           #grid-row3 {
@@ -101,12 +103,12 @@
             <h1 class="fancy-writing">Dubito!</h1>
         </div>
         <div id="grid-row2">
-                <button type="button" class="btn btn-red btn-bordered btn-90-width btn-vertically-padded" data-toggle="modal" data-target="#createModal">
+                <button type="button" class="btn btn-red btn-bordered btn-vertically-padded" data-toggle="modal" data-target="#createModal">
                     <span class="h3">
                         <i class="fas fa-plus-circle"></i> &nbsp;{% trans 'Crea partita' %}
                     </span>
                 </button>
-                <button type="button" class="btn btn-red btn-bordered btn-90-width btn-vertically-padded" data-toggle="modal" data-target="#joinModal">
+                <button type="button" class="btn btn-red btn-bordered btn-vertically-padded" data-toggle="modal" data-target="#joinModal">
                     <span class="h3">
                         <i class="fas fa-user-plus"></i> &nbsp;{% trans 'Unisciti a una partita' %}
                     </span>
