@@ -78,6 +78,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         action = text_data_json['type']
 
+        logging.info(self.scope['session']['player_id'])
+        logging.info(text_data)
+
         if action == 'start_round':
             # called when the first player places down card(s) and initiates a round
             claimed_card = text_data_json['claimed']
@@ -99,6 +102,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.send_message(message)
         elif action == 'restart':
             await self.restart_game()
+
+        logging.info("event processed correctly")
 
     async def start_round(self, claimed_card, cards):
         # Sends claimed card information and saves placed cards to db
@@ -596,7 +601,7 @@ class GameConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_amount_of_card_in_hand(self, player_id, card_number):
         length = len(CardsInHand.objects.filter(Q(player_id=player_id) & Q(card_number=card_number)))
-        logging.warning(card_number + " " + str(length))
+        # logging.warning(card_number + " " + str(length))
         return length
 
     @database_sync_to_async
