@@ -27,7 +27,7 @@
       hreflang="x-default"
       href="{% translate_url 'en-us' %}" />
 
-      <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
       
       <meta name="description" content="{% trans 'La prima app per giocare online a Dubito!' %}" />
 
@@ -68,6 +68,10 @@
             grid-row-gap: 1em;
           }
 
+          #grid-row1 {
+            justify-self: center;
+          }
+
           #grid-row2 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(335px, auto));
@@ -94,7 +98,7 @@
   <body>
     <div id="main-container-grid">
         <div id="grid-row1">
-            <h1 class="h1-title fancy-writing">Dubito!</h1>
+            <h1 class="fancy-writing">Dubito!</h1>
         </div>
         <div id="grid-row2">
                 <button type="button" class="btn btn-red btn-bordered btn-90-width btn-vertically-padded" data-toggle="modal" data-target="#createModal">
