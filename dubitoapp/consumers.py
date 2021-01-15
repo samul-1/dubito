@@ -79,7 +79,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         action = text_data_json['type']
 
         logging.info(self.scope['session']['player_id'])
-        logging.info(text_data)
+        logging.info(text_data_json)
 
         if action == 'start_round':
             # called when the first player places down card(s) and initiates a round
