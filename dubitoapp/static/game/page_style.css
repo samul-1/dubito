@@ -96,6 +96,7 @@ ol li {
 .btn-red {
   background-color: #330e11;
   color: white;
+  border-radius: 0.8em;
 }
 
 .btn-red:hover {
@@ -137,7 +138,7 @@ ol li {
   border: 1px solid #2d0d10 !important;
   -webkit-box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.75);
   -moz-box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.75);
-  box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.75);
+  box-shadow: 2px 2px 8px 0px rgba(0,0,0,0.5);
 }
 
 
