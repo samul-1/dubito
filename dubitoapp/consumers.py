@@ -585,16 +585,6 @@ class GameConsumer(AsyncWebsocketConsumer):
         return Player.objects.filter(game_id=game_id)
 
     @database_sync_to_async
-    def has_begun(self, game_id):
-        return Game.objects.get(pk=game_id).has_begun
-
-    @database_sync_to_async
-    def begin_game(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        game.has_begun = True
-        game.save()
-
-    @database_sync_to_async
     def get_amount_of_card_in_hand(self, player_id, card_number):
         length = len(CardsInHand.objects.filter(Q(player_id=player_id) & Q(card_number=card_number)))
         # logging.warning(card_number + " " + str(length))
@@ -775,10 +765,39 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             new_game = await self.create_public_game()
             await self.join_user_to_game(player, new_game)
 
+    async def disconnect(self, close_code):
+        game = await self.get_joined_game_from_player_id(self.scope['session']['player_id'])
+        if await self.has_begun(game):
+            return
+
+        logging.info(self.scope['url_route']['kwargs']['player_name'] + " has left matchmaking")
+
+        # delete player and decrement number of joined players to game
+        await self.decrement_joined_players(game)
+        await self.delete_player_from_id(self.scope['session']['player_id'])
+
+        if await self.get_joined_players_number(game) == 1:
+            # if the player who left was the last aside from the one that created the game,
+            # tell that player to reset the timer because there are no players anymore
+            await self.channel_layer.group_send(
+                self.group,
+                {
+                    'type': 'reset_timer_handler',
+                    'game_id': game.pk,
+                }
+            )
+
+        # if player was the only one online, delete the game that was created due to them connecting
+        await self.delete_game_if_no_players(game)
+
+        await self.channel_layer.group_discard(
+            self.group,
+            self.channel_name
+        )
+
     async def player_found_handler(self, event):
         if self.scope['session']['player_id'] not in await sync_to_async(list)(await self.get_joined_player_ids(event['game_id'])):
             # only send information to players joined to this game
-            print("nope")
             return
 
         await self.send(text_data=json.dumps({
@@ -786,10 +805,20 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             'game_id': event['game_id'],
         }))
     
+    async def reset_timer_handler(self, event):
+        if self.scope['session']['player_id'] not in await sync_to_async(list)(await self.get_joined_player_ids(event['game_id'])):
+            # only send information to players joined to this game
+            return
+
+        await self.send(text_data=json.dumps({
+            'type': 'reset_timer',
+        }))
+
     async def deal_cards_task(self, game_id):
         print("dealing")
         await asyncio.sleep(9)
         await self.call_deal_cards(game_id)
+        await self.begin_game(game_id)
 
     @database_sync_to_async
     def create_new_player(self, name):
@@ -826,12 +855,50 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
     def get_joined_player_ids(self, game_id):
         game = Game.objects.get(pk=game_id)
         return map(lambda p: p.pk, Player.objects.filter(game_id=game))
+    
+    @database_sync_to_async
+    def get_joined_players_number(self, game):
+        return game.joined_players
 
     @database_sync_to_async
     def call_deal_cards(self, game_id):
         import random
         game = Game.objects.get(pk=game_id)
+        if game.joined_players == 1:
+            return
         game.deal_cards_to_players()
         game.is_public = False
         game.player_current_turn = random.randint(1, game.number_of_players)
+        game.save()
+
+    @database_sync_to_async
+    def get_joined_game_from_player_id(self, player_id):
+        return Player.objects.get(pk=player_id).game_id
+
+    @database_sync_to_async
+    def delete_game_if_no_players(self, game):
+        if game.joined_players == 0:
+            game.delete()
+
+    @database_sync_to_async
+    def decrement_joined_players(self, game):
+        game.joined_players -= 1
+        game.number_of_players -= 1
+        game.save()
+
+    @database_sync_to_async
+    def delete_player_from_id(self, player_id):
+        player = Player.objects.get(pk=player_id)
+        player.delete()
+
+    @database_sync_to_async
+    def has_begun(self, game):
+        return game.has_begun
+
+    @database_sync_to_async
+    def begin_game(self, game_id):
+        game = Game.objects.get(pk=game_id)
+        if game.joined_players == 1:
+            return
+        game.has_begun = True
         game.save()

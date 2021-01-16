@@ -16,6 +16,7 @@ let vue = new Vue({
         searching: false,
         ellipsis: '&nbsp;&nbsp;&nbsp;',
         matchmaking_errors: [],
+        handle: null,
     },
   
     mounted() {
@@ -56,23 +57,31 @@ let vue = new Vue({
             const self = this
             this.socket.onmessage = function (e) {
               data = JSON.parse(e.data)
-              console.log(data)
+             //  console.log(data)
               switch(data.type) {
-                  case 'player_found':
-                      self.game_id = data.game_id
-                      // self.show_player_joined()
-                      if(!self.timer_started) {
-                          self.player_found = true
-                          self.trigger_timer()
-                      }
-                      break
+                case 'player_found':
+                    self.game_id = data.game_id
+                    // self.show_player_joined()
+                    if(!self.timer_started) {
+                        self.player_found = true
+                        self.trigger_timer()
+                    }
+                    break
+                case 'reset_timer':
+                    self.game_id = null
+                    self.player_found = false
+                    clearInterval(self.handle)
+                    this.handle = null
+                    self.timer = 10
+                    self.timer_started = false
+                    break
               }
             }
         },
 
         trigger_timer() {
             this.timer_started = true
-            setInterval(() => {
+            this.handle = setInterval(() => {
                 this.timer--
                 if(!this.timer) {
                     window.location.href = '/game/game/' + this.game_id

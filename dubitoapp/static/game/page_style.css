@@ -17,7 +17,6 @@ body {
     color: white !important;
 }
 
-
 .required:after {
   color: red;
   content: '*';
