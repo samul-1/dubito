@@ -110,27 +110,27 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         if(await self.check_card_possession(self.game_id, self.player_id, cards)):
             # player is illegally trying to play cards they don't have
-            logging.warning("trying to place cards they don't have")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to place cards they don't have: " + str(cards))
             return
 
         if await self.is_locked(self.game_id):
             # someone else got here first
-            logging.warning("game is locked")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to start round while game is locked")
             return
 
         if await self.get_current_turn(self.game_id) != await self.get_player_number(self.player_id):
             # wrong player trying to play
-            logging.warning("wrong turn")
+            logging.warning(await self.get_player_name(self.player_id) + " trying to start round but it's wrong turn")
             return
 
         if not len(cards):
             # trying to place 0 cards
-            logging.warning("trying to place 0 cards")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to place 0 cards")
             return
 
         # You can't start two consecutive rounds with the same card
         if int(claimed_card) == await self.get_current_card(self.game_id):
-            logging.info("trying to place same rank two consecutive turns")
+            logging.info(await self.get_player_name(self.player_id) + " is trying to place same rank two consecutive turns")
             return
 
         await self.lock_game(self.game_id)  # prevent further action from other players
@@ -163,7 +163,7 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def check_current_player_online(self):
         # verifies the current turn player is onine, and if they aren't, passes turn onto next player
         current_turn_player_number = await self.get_current_turn(self.game_id)
-        while not await self.is_online(await self.get_player_id_from_number(self.game_id, current_turn_player_number)):
+        while not await self.is_online(await self.get_player_id_from_number(self.game_id, current_turn_player_number)) and await self.number_of_online_players(self.game_id) > 0:
             # if player isn't online, increment turn, and iterate until you find a player that is online
             await self.pass_turn(self.game_id)
             current_turn_player_number = await self.get_current_turn(self.game_id)
@@ -175,17 +175,17 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def doubt(self):
         if await self.is_locked(self.game_id):
             # someone else got here first
-            logging.warning("game is locked")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to doubt while game is locked")
             return
 
         if await self.get_player_last_turn(self.game_id) is None or await self.get_last_amount_played(self.game_id) == 0 or await self.get_stacked_cards(self.game_id) is None:
             # trying to doubt before any card has been placed
-            logging.warning("trying to doubt before any cards placed")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to doubt before any cards placed")
             return
 
         if self.player_id == await self.get_player_last_turn(self.game_id):
             # player doubted themselves
-            logging.warning("doubted themselves")
+            logging.warning(await self.get_player_name(self.player_id) + " doubted themselves")
             return
 
         await self.lock_game(self.game_id)  # prevent further action from other players
@@ -253,22 +253,22 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         if await self.check_card_possession(self.game_id, self.player_id, cards):
             # player is illegally trying to play cards they don't have
-            logging.warning("trying to place cards they don't have")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to place cards they don't have: " + str(cards))
             return
 
         if await self.is_locked(self.game_id):
             # someone else got here first
-            logging.warning("game is locked")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to place cards while game is locked")
             return
 
         if await self.get_current_turn(self.game_id) != await self.get_player_number(self.player_id):
             # wrong player trying to play
-            logging.warning("wrong turn")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to place cards but it's wrong turn")
             return
 
         if not len(cards):
             # trying to place 0 cards
-            logging.warning("trying to place 0 cards")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to place 0 cards")
             return
 
         await self.lock_game(self.game_id)  # prevent further action from other players
@@ -328,7 +328,7 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def restart_game(self):
         # Called when a player wants to play again at the end of a game
         if not await self.game_has_been_won(self.game_id):
-            logging.warning("trying to restart game before it's ended")
+            logging.warning(await self.get_player_name(self.player_id) + " is trying to restart game before it's ended")
             return
 
         await self.restart_game_routine(self.game_id)
@@ -407,6 +407,11 @@ class GameConsumer(AsyncWebsocketConsumer):
                 'by': event['restarted_by'],
             },
         }))
+
+    @database_sync_to_async
+    def number_of_online_players(self, game_id):
+        game = Game.objects.get(pk=game_id)
+        return Player.objects.filter(game_id=game, is_online=True).count()
 
     @database_sync_to_async
     def increment_turn(self, game_id):
@@ -587,7 +592,6 @@ class GameConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_amount_of_card_in_hand(self, player_id, card_number):
         length = len(CardsInHand.objects.filter(Q(player_id=player_id) & Q(card_number=card_number)))
-        # logging.warning(card_number + " " + str(length))
         return length
 
     @database_sync_to_async

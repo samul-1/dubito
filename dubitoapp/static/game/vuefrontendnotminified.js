@@ -116,7 +116,7 @@ let vue = new Vue({
 
   created() {
     const self = this
-    this.socket.onmessage = function (e) {
+    gameSocket.onmessage = function (e) {
       data = JSON.parse(e.data)
       // console.log(data)
       // transfer received state to buffer
@@ -153,6 +153,7 @@ let vue = new Vue({
             data.event_specifics.copies_removed,
             data.event_specifics.losing_player
             )
+          self.selected_cards = []
           break
         case "pass_turn":
         case "player_joined":
