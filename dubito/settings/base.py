@@ -152,7 +152,7 @@ STATICFILES_DIRS = (
 
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'dubitoapp/static/game')]
 
-ASGI_APPLICATION = "dubito.routing.application"
+# ASGI_APPLICATION = "dubito.routing.application"
 
 # Channels
 ASGI_APPLICATION = 'dubito.routing.application'
