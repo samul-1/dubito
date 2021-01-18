@@ -346,3 +346,6 @@ msgstr "The quick game system allows you to play against random players. If ther
 
 msgid "Il tuo nome contiene caratteri non consentiti."
 msgstr "Your name contains characters that aren't allowed."
+
+msgid "Ci sono giocatori online!"
+msgstr "There are online players!"

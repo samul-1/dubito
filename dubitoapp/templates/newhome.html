@@ -100,6 +100,17 @@
     #feedback {
       justify-self: flex-end;
     }
+
+    .online-players::after {
+      background: #541a1d;
+      content: '{% trans 'Ci sono giocatori online!' %}';
+      position: absolute;
+      padding: 2px 5px;
+      border-radius: 0.5em;
+      top: -10px;
+      right: -5px;
+      box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 
@@ -110,8 +121,13 @@
         <h1 class="fancy-writing">Dubito!</h1>
       </div>
       <div id="grid-row2">
-        <button type="button" class="btn btn-red btn-bordered btn-vertically-padded" data-toggle="modal"
-        data-target="#matchmakingModal">
+        <button 
+        type="button"
+        style="position: relative;"
+        class="btn btn-red btn-bordered btn-vertically-padded"
+        :class="{'online-players': online_players }"
+        data-toggle="modal"
+          data-target="#matchmakingModal">
           <span class="h3">
             <i class="fas fa-bolt"></i> &nbsp;{% trans 'Partita veloce' %}
           </span>
@@ -142,9 +158,10 @@
         </div>
       </div>
     </div>
-  
+
     <!-- Create modal -->
-    <div class="modal" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel"
+      aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header modal-padded">
@@ -163,7 +180,8 @@
                 <p>
                   {{ create_form.creator_name }}
                 </p>
-                <input onclick="createSubmit(event)" class="btn btn-red" type="submit" value="{% trans 'Crea partita' %}">
+                <input onclick="createSubmit(event)" class="btn btn-red" type="submit"
+                  value="{% trans 'Crea partita' %}">
               </form>
             </div>
             <div id="phase2">
@@ -180,7 +198,7 @@
         </div>
       </div>
     </div>
-  
+
     <!-- Matchmaking modal -->
     <div class="modal" id="matchmakingModal" tabindex="-1" role="dialog" aria-labelledby="matchmakingModalLabel"
       aria-hidden="true">
@@ -201,12 +219,7 @@
             <div v-if="!searching">
               <h2>{% trans 'Scegli un nome' %}</h2>
               <p>
-                <input
-                type="text"
-                maxlength="10"
-                v-model="player_name"
-                @keyup.enter="enter_matchmaking()"
-                />
+                <input type="text" maxlength="10" v-model="player_name" @keyup.enter="enter_matchmaking()" />
                 <ul class="form_error_list" v-if="matchmaking_errors.length">
                   <li class="form_error" v-for="error in matchmaking_errors">
                     ${ error }
@@ -216,20 +229,20 @@
               <button @click="enter_matchmaking()" class="btn btn-red">
                 {% trans 'Cerca giocatori' %}
               </button>
-          </div>
-          <div v-if="timer_started">
-            <h2>
-              {% trans 'Hai trovato un giocatore!' %}
-            </h2>
-            <h4>
-              {% trans 'La partita inizierà tra' %} ${ timer } ${ seconds }
-            </h4>
-          </div>
+            </div>
+            <div v-if="timer_started">
+              <h2>
+                {% trans 'Hai trovato un giocatore!' %}
+              </h2>
+              <h4>
+                {% trans 'La partita inizierà tra' %} ${ timer } ${ seconds }
+              </h4>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  
+
     <!-- Join modal -->
     <div class="modal" id="joinModal" tabindex="-1" role="dialog" aria-labelledby="joinModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered to modal-lg" role="document">
@@ -258,7 +271,7 @@
         </div>
       </div>
     </div>
-  
+
     <!-- Instructions modal -->
     <div class="modal" id="instructionsModal" tabindex="-1" role="dialog" aria-labelledby="howtoplayModalLabel"
       aria-hidden="true">
@@ -276,7 +289,8 @@
                 <div class="col-12">
                   <h2>{% trans 'Come effettuare una partita veloce' %}</h2>
                   <ol>
-                    <li>{% trans 'Clicca su' %} <em>{% trans 'Partita veloce' %}</em> {% trans 'e scegli un nome' %}.</li>
+                    <li>{% trans 'Clicca su' %} <em>{% trans 'Partita veloce' %}</em> {% trans 'e scegli un nome' %}.
+                    </li>
                     <li>{% trans 'Clicca su' %} <em>{% trans 'Cerca giocatori' %}</em> {% trans 'e attendi' %}.</li>
                   </ol>
                   <p>
@@ -326,7 +340,7 @@
         </div>
       </div>
     </div>
-  
+
     <!-- Feedback modal -->
     <div class="modal" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel"
       aria-hidden="true">
@@ -370,7 +384,7 @@
       </div>
     </div>
   </div>
-  
+
   <script>
     const gameurl = "{% url 'game' 0 %}".slice(0, -2)
     //$('#pincode').pincodeInput({inputs:5});

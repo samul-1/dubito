@@ -335,3 +335,6 @@ msgstr "Il sistema di partite veloci ti permette di giocare online con altri ute
 
 msgid "Il tuo nome contiene caratteri non consentiti."
 msgstr "Il tuo nome contiene caratteri non consentiti."
+
+msgid "Ci sono giocatori online!"
+msgstr "Ci sono giocatori online!"
