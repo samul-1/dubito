@@ -265,7 +265,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         # add the whole stack to loser player's hand
         await self.add_to_hand(self.game_id, loser, whole_stack)
         for i in range(1, 14):
-            if await self.get_amount_of_card_in_hand(loser, str(i)) == 8:
+            if await self.get_amount_of_card_in_hand(loser, str(i)) >= 8:
                 # if they have 8 copies of a card, discard those
                 await self.remove_all_cards(loser, str(i))
                 copies_removed.append(str(i))

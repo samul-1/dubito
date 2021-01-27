@@ -2,19 +2,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap');
 
-html, body {
-    /* font-family: 'PT Sans', sans-serif; */
-    font-family: 'Josefin Sans', sans-serif;
-    height: 100% !important;
+html,
+body {
+  /* font-family: 'PT Sans', sans-serif; */
+  font-family: 'Josefin Sans', sans-serif;
+  height: 100% !important;
 }
 
 body {
-    /*background-color: #003300 !important;
+  /*background-color: #003300 !important;
     background-image: radial-gradient(circle, #1b3b09, #183c0b, #163c0e, #123d10, #0f3d12, #0c3d12, #093e12, #063e12, #043e0f, #033f0c, #013f09, #003f05);
     */
-    background-image: radial-gradient(circle, rgba(0,76,0,0.8), rgba(0,53,0,0.85), #063e12), url(https://t3.ftcdn.net/jpg/03/33/98/58/360_F_333985870_3LjrtHQCcgo9t7xcNrbUI1vUOQt0DuQ6.jpg);
-    background-size: cover;
-    color: white !important;
+  background-image: radial-gradient(circle, rgba(0, 76, 0, 0.8), rgba(0, 53, 0, 0.85), #063e12), url(https://t3.ftcdn.net/jpg/03/33/98/58/360_F_333985870_3LjrtHQCcgo9t7xcNrbUI1vUOQt0DuQ6.jpg);
+  background-size: cover;
+  color: white !important;
 }
 
 .required:after {
@@ -47,7 +48,8 @@ ol li::before {
   content: counter(li);
   font-weight: 900;
   color: #143F12;
-  display: inline-block; width: 1em;
+  display: inline-block;
+  width: 1em;
   margin-left: -1em
 }
 
@@ -136,9 +138,9 @@ ol li {
 
 .btn-bordered {
   border: 1px solid #2d0d10 !important;
-  -webkit-box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.75);
-  -moz-box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.75);
-  box-shadow: 2px 2px 8px 0px rgba(0,0,0,0.3);
+  -webkit-box-shadow: 2px 2px 3px 0px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 2px 2px 3px 0px rgba(0, 0, 0, 0.75);
+  box-shadow: 2px 2px 8px 0px rgba(0, 0, 0, 0.3);
 }
 
 
@@ -167,49 +169,33 @@ ol li {
 }
 
 .big {
-    font-size: 2.5em;
-    background-color: #303030;
-    padding: 3px 10px 3px 10px;
-    border-radius: 5px;
-    color: white;
+  font-size: 2.5em;
+  background-color: #303030;
+  padding: 3px 10px 3px 10px;
+  border-radius: 5px;
+  color: white;
 }
 
 #main_container {
-    padding: 20px;
+  padding: 20px;
 }
 
 /* iPhone 4/5/6/7/8 portrait, Galaxy Fold */
-@media only screen 
-  and (min-device-width: 375px) 
-  and (max-device-width: 667px) 
-  and (-webkit-min-device-pixel-ratio: 2)
-  and (orientation: portrait),
-  only screen 
-  and (min-device-width: 320px) 
-  and (max-device-width: 568px)
-  and (-webkit-min-device-pixel-ratio: 2)
-  and (orientation: portrait),
-  screen 
-  and (device-width: 280px) 
-  and (device-height: 653px) 
-  and (-webkit-device-pixel-ratio: 3) 
-  and (orientation: portrait) {
-    #grid-row2 {
-      grid-template-columns: 1fr !important;
-    }
-
-    #main-container-grid {
-      grid-template-rows: 1.3fr 2fr 0.9fr !important;
-      height: 92vh !important;
-    }
+@media only screen and (min-device-width: 375px) and (max-device-width: 667px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait),
+only screen and (min-device-width: 320px) and (max-device-width: 568px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait),
+screen and (device-width: 280px) and (device-height: 653px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) {
+  #grid-row2 {
+    grid-template-columns: 1fr !important;
   }
 
+  #main-container-grid {
+    grid-template-rows: 1.3fr 2fr 0.9fr !important;
+    height: 92vh !important;
+  }
+}
+
 /* iPad portrait */
-@media only screen 
-and (min-device-width: 768px) 
-and (max-device-width: 1024px) 
-and (orientation: portrait) 
-and (-webkit-min-device-pixel-ratio: 2) {
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2) {
   #main-container-grid {
     grid-template-rows: 1fr 2fr 1fr;
   }
