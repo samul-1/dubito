@@ -554,7 +554,7 @@ let vue = new Vue({
       let res = []
       let seeds = ['D','D','H','H','S','S','C','C']
       shuffleArray(seeds)
-      for(let i = 0; i < 7; i++) {
+      for(let i = 0; i <= 7; i++) {
         res.push(card + seeds[i])
       }
       return res
