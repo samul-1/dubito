@@ -3,9 +3,24 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 import random
 
+from django.db import transaction
+
 
 class Info(models.Model):
-    online_users = models.IntegerField(default=0)
+    online_users = models.PositiveIntegerField(default=0)
+
+    @classmethod
+    def get_info(cls):
+        info, _ = cls.objects.get_or_create(pk=1)
+        return info
+
+    @classmethod
+    def update_and_get_online_users(cls, delta):
+        with transaction.atomic():
+            info = cls.get_info()
+            info.online_users += delta
+            info.save()
+            return info.online_users
 
 
 class Game(models.Model):

@@ -1105,7 +1105,5 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def update_online_user_count_and_get_value(self, increment):
-        info = Info.objects.get(pk=1)
-        info.online_users += increment
-        info.save()
-        return info.online_users
+        online_users = Info.update_and_get_online_users(increment)
+        return online_users
