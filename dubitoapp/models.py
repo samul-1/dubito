@@ -27,19 +27,23 @@ class Game(models.Model):
     code = models.IntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
     coutdown_end = models.DateTimeField(default=None, null=True)
-    number_of_players = models.IntegerField()
-    joined_players = models.IntegerField(default=1)
-    player_current_turn = models.IntegerField(null=True)
-    player_last_turn = models.IntegerField(default=-1)
-    current_card = models.IntegerField(null=True, default=0)
-    last_card = models.IntegerField(null=True, default=0)
-    stacked_cards = models.CharField(max_length=1000, default="[]")
-    last_amount_played = models.IntegerField(default=0)
+    number_of_players = models.IntegerField()  # TODO positive small integer
+    joined_players = models.IntegerField(default=1)  # TODO positive small integer
+    player_current_turn = models.IntegerField(null=True)  # TODO positive small integer
+    player_last_turn = models.IntegerField(
+        default=-1
+    )  # TODO positive small integer or None
+    current_card = models.IntegerField(
+        null=True, default=0
+    )  # TODO positive small integer
+    last_card = models.IntegerField(null=True, default=0)  # TODO positive small integer
+    stacked_cards = models.JSONField(default=list, blank=True)
+    last_amount_played = models.IntegerField(default=0)  # TODO positive small integer
     locked = models.BooleanField(
         default=False
     )  # used to prevent actions while there are interruptions
     has_begun = models.BooleanField(default=False)
-    winning_player = models.IntegerField(
+    winning_player = models.IntegerField(  # TODO positive small integer or None
         default=-1
     )  # contains the number of a player that currently has 0 cards
     has_been_won = models.BooleanField(default=False)
@@ -79,10 +83,12 @@ class Game(models.Model):
         self.joined_players = 0
         self.save()
 
+    # TODO add a parameter to specify the number of decks, whether 1, 1.5 or 2
     def deal_cards_to_players(
         self,
     ):  # called after all players have joined; deals each player their hand of cards
         # generate the deck of cards and shuffle it
+        # TODO make this a constant somewhere
         deck = [
             "1H",
             "1H",
@@ -196,7 +202,6 @@ class Game(models.Model):
 
         # compute how many cards each player will have and the remainder
         cards_per_player = int(108 / self.number_of_players)
-        remaining_cards = 108 % self.number_of_players
 
         random.shuffle(deck)  # shuffle the deck
         # deal cards_per_player cards to each player
@@ -214,19 +219,10 @@ class Game(models.Model):
                     game_id=self.pk, player_number=curr_player_num
                 )
 
-            split_card_str = list(card)  # split each character
-            seed = split_card_str[
-                len(split_card_str) - 1
-            ]  # get last character for seed
-            number = int(card[:-1])  # remaining characters are the card number
-
             # create record in db for curr_player having this card in their hand
-            card_in_hand = CardsInHand(
-                card_seed=seed, card_number=number, player_id=curr_player
-            )
-            card_in_hand.save()
+            CardsInHand.create_from_card_string(card, curr_player)
 
-            idx = idx + 1
+            idx += 1
 
 
 class Player(models.Model):
@@ -244,11 +240,52 @@ class Player(models.Model):
     def __str__(self):
         return str(self.pk)
 
+    def add_cards_to_hand(self, cards):
+        for card in cards:
+            CardsInHand.create_from_card_string(card, self)
+
+    def remove_cards_from_hand(self, cards):
+        for card in cards:
+            CardsInHand.remove_from_card_string(card, self)
+
 
 class CardsInHand(models.Model):
     player_id = models.ForeignKey(Player, on_delete=models.CASCADE)
     card_number = models.IntegerField()
     card_seed = models.CharField(max_length=1)
+
+    JOKER_NUMBER = 14
+
+    @staticmethod
+    def from_card_string(
+        card_string,
+    ):
+        split_card_str = list(card_string)  # split each character
+        seed = split_card_str[len(split_card_str) - 1]  # get last character for seed
+        number = int(card_string[:-1])  # remaining characters are the number
+        return (seed, number)
+
+    @classmethod
+    def create_from_card_string(
+        cls,
+        card_string,
+        player,
+    ):
+        seed, number = cls.from_card_string(card_string)
+        card_in_hand = cls(card_seed=seed, card_number=number, player_id=player)
+        card_in_hand.save()
+
+    @classmethod
+    def remove_from_card_string(
+        cls,
+        card_string,
+        player,
+    ):
+        seed, number = cls.from_card_string(card_string)
+        card_in_hand = cls.objects.filter(
+            card_seed=seed, card_number=number, player_id=player
+        )[0]
+        card_in_hand.delete()
 
 
 class Feedback(models.Model):

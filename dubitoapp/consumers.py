@@ -15,7 +15,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         # the event_specifics dict contains relevant information about the last event in the game
         await self.increment_event_count(self.game_id)
         for player in await sync_to_async(list)(
-            Player.objects.filter(Q(game_id=self.game_id))
+            Player.objects.filter(game_id=self.game_id)
         ):
             await self.channel_layer.group_send(
                 self.game_group_name,
@@ -27,6 +27,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
 
     async def connect(self):
+        # TODO in all methods that explicitly take game_id, use self.game_id instead
         self.game_id = self.scope["url_route"]["kwargs"]["game_id"]
         self.player_id = self.scope["session"]["player_id"]
         self.game_group_name = "game_%s" % self.game_id
@@ -66,7 +67,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(5)  # give the player a chance to come back
             if not await self.is_online(
                 self.player_id
-            ):  # player hasn't come back ater 5 seconds
+            ):  # player hasn't come back after 5 seconds
                 await self.pass_turn(self.game_id)  # pass turn onto next player
                 await self.send_new_state_to_all_players(
                     {
@@ -156,6 +157,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.lock_game(self.game_id)  # prevent further action from other players
 
         # update current card, place selected cards onto the stack, and remove them from player's hand
+        # TODO put in a single method & wrap in transaction
         await self.set_current_card(self.game_id, claimed_card)
         await self.set_stacked_cards(self.game_id, cards)
         await self.remove_from_hand(self.game_id, self.player_id, cards)
@@ -183,7 +185,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.check_current_player_online()  # handle the case where current player isn't online
 
     async def check_current_player_online(self):
-        # verifies the current turn player is onine, and if they aren't, passes turn onto next player
+        # verifies the current turn player is online, and if they aren't, passes turn onto next player
         current_turn_player_number = await self.get_current_turn(self.game_id)
         while (
             not await self.is_online(
@@ -212,10 +214,12 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
             return
 
+        game = await self.get_game()
+        last_player_id = await self.get_player_last_turn(self.game_id)
         if (
-            await self.get_player_last_turn(self.game_id) is None
-            or await self.get_last_amount_played(self.game_id) == 0
-            or await self.get_stacked_cards(self.game_id) is None
+            game.last_amount_played == 0
+            or not game.stacked_cards
+            or last_player_id is None
         ):
             # trying to doubt before any card has been placed
             logging.warning(
@@ -224,7 +228,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
             return
 
-        if self.player_id == await self.get_player_last_turn(self.game_id):
+        if self.player_id == last_player_id:
             # player doubted themselves
             logging.warning(
                 await self.get_player_name(self.player_id) + " doubted themselves"
@@ -235,32 +239,29 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         # get last cards played from the stack
         uncovered_cards = await self.get_stacked_cards(
-            self.game_id, await self.get_last_amount_played(self.game_id)
+            self.game_id, game.last_amount_played
         )
         outcome = 0  # 0 if who was doubted wins, 1 if doubter wins
         copies_removed = []
 
         # compare cards against claimed card
+        claimed_card = game.current_card
         for card in uncovered_cards:
-            split_card_str = list(card)  # split each character
-            number = int(card[:-1])  # remaining characters are the number
-            claimed_card = await self.get_current_card(self.game_id)
-            if number != claimed_card and number != 14:  # 14 is the wildcard
+            _, number = CardsInHand.from_card_string(card)
+            if number != claimed_card and number != CardsInHand.JOKER_NUMBER:
                 outcome = 1  # success for who doubted
                 break
 
-        whole_stack = await self.get_stacked_cards(self.game_id)
+        whole_stack = game.stacked_cards
         who_doubted = self.player_id
         last_player = await self.get_player_last_turn(
             self.game_id
         )  # this is who was doubted
 
         if outcome:
-            winner = who_doubted
-            loser = last_player
+            winner, loser = who_doubted, last_player
         else:
-            winner = last_player
-            loser = who_doubted
+            winner, loser = last_player, who_doubted
 
         # add the whole stack to loser player's hand
         await self.add_to_hand(self.game_id, loser, whole_stack)
@@ -269,6 +270,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 # if they have 8 copies of a card, discard those
                 await self.remove_all_cards(loser, str(i))
                 copies_removed.append(str(i))
+
                 if not await self.get_number_of_cards_in_hand(
                     loser
                 ):  # player has no more cards
@@ -298,7 +300,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def place_cards(self, cards):
         # Sends amount of cards of current number placed and saves placed cards to db
-
         if await self.check_card_possession(self.game_id, self.player_id, cards):
             # player is illegally trying to play cards they don't have
             logging.warning(
@@ -316,9 +317,10 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
             return
 
-        if await self.get_current_turn(self.game_id) != await self.get_player_number(
-            self.player_id
-        ):
+        player_number = await self.get_player_number(self.player_id)
+
+        # TODO replace player number with player id
+        if await self.get_current_turn(self.game_id) != player_number:
             # wrong player trying to play
             logging.warning(
                 await self.get_player_name(self.player_id)
@@ -347,14 +349,14 @@ class GameConsumer(AsyncWebsocketConsumer):
             self.player_id
         ):  # player has no more cards
             await self.set_winning_player(
-                self.game_id, await self.get_player_number(self.player_id)
-            )
+                self.game_id, player_number
+            )  # TODO replace player number with player id
 
         # contains information specific to this type of event that will be used by the client
         # to play the corresponding animations
         event_specifics = {
             "type": "cards_placed",
-            "by_who": await self.get_player_number(self.player_id),
+            "by_who": player_number,
             "number_of_cards_placed": len(cards),
         }
 
@@ -412,7 +414,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         for player in await sync_to_async(list)(await self.get_players(self.game_id)):
             await self.set_online_status(player.pk, False)
-            await self.set_rejoined(player.pk, False)
+            await self.set_rejoined(player.pk, False)  # TODO is this necessary?
 
         await self.channel_layer.group_send(
             self.game_group_name,
@@ -425,8 +427,10 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def verify_or_revoke_victory(self, game_id):
         # if there was a player with zero cards on last turn, and they
         # still have zero cards after next event, they win
-        winning_player = await self.get_winning_player(self.game_id)
-        if winning_player != -1:
+        game = await self.get_game()
+        winning_player = game.winning_player
+
+        if winning_player != -1:  # TODO replace -1 with None
             winning_player_id = await self.get_player_id_from_number(
                 self.game_id, winning_player
             )
@@ -515,7 +519,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         game.player_current_turn = (
             game.player_current_turn % game.number_of_players
         ) + 1
-        game.save()
+        game.save(update_fields=["player_last_turn", "player_current_turn"])
 
     @database_sync_to_async
     def pass_turn(self, game_id):
@@ -525,7 +529,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         game.player_current_turn = (
             game.player_current_turn % game.number_of_players
         ) + 1
-        game.save()
+        game.save(update_fields=["player_current_turn"])
 
     @database_sync_to_async
     def get_hand(self, player_id):
@@ -541,13 +545,17 @@ class GameConsumer(AsyncWebsocketConsumer):
     def lock_game(self, game_id):
         game = Game.objects.get(pk=game_id)
         game.locked = True
-        game.save()
+        game.save(update_fields=["locked"])
 
     @database_sync_to_async
     def unlock_game(self, game_id):
         game = Game.objects.get(pk=game_id)
         game.locked = False
-        game.save()
+        game.save(update_fields=["locked"])
+
+    @database_sync_to_async
+    def get_game(self):
+        return Game.objects.get(pk=self.game_id)
 
     @database_sync_to_async
     def get_current_turn(self, game_id):
@@ -572,14 +580,14 @@ class GameConsumer(AsyncWebsocketConsumer):
         game = Game.objects.get(pk=game_id)
         game.player_last_turn = game.player_current_turn
         game.player_current_turn = new_turn
-        game.save()
+        game.save(update_fields=["player_last_turn", "player_current_turn"])
 
     @database_sync_to_async
     def get_stacked_cards(
         self, game_id, amount=0
     ):  # get a list of the cards that are on the stack
         game = Game.objects.get(pk=game_id)
-        selected_cards = json.loads(game.stacked_cards)[-amount:]
+        selected_cards = game.stacked_cards[-amount:]
         if selected_cards == []:
             return None
         return selected_cards
@@ -587,24 +595,26 @@ class GameConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def empty_stacked_cards(self, game_id):
         game = Game.objects.get(pk=game_id)
-        game.stacked_cards = "[]"
-        game.save()
+        game.stacked_cards = []
+        game.save(update_fields=["stacked_cards"])
 
     @database_sync_to_async
     def set_stacked_cards(self, game_id, cards):
         game = Game.objects.get(pk=game_id)
-        game.stacked_cards = json.dumps(cards)
+        game.stacked_cards = cards
         game.last_amount_played = len(cards)
-        game.save()
+        game.save(update_fields=["stacked_cards", "last_amount_played"])
 
     @database_sync_to_async
     def add_stacked_cards(self, game_id, cards):  # adds a list of cards to the stack
         game = Game.objects.get(pk=game_id)
-        stack = json.loads(game.stacked_cards)
+
+        stack = game.stacked_cards
         stack.extend(cards)
-        game.stacked_cards = json.dumps(stack)
+        game.stacked_cards = stack
+
         game.last_amount_played = len(cards)
-        game.save()
+        game.save(update_fields=["stacked_cards", "last_amount_played"])
 
     @database_sync_to_async
     def get_last_amount_played(self, game_id):
@@ -620,73 +630,40 @@ class GameConsumer(AsyncWebsocketConsumer):
     def set_current_card(self, game_id, card_number):
         game = Game.objects.get(pk=game_id)
         game.current_card = card_number
-        game.save()
+        game.save(update_fields=["current_card"])
 
     @database_sync_to_async
     def check_card_possession(self, game_id, player_id, cards):
         # returns 0 if the requested player has all the requested cards in their hand, 1 otherwise
         cards_counted = {}
         for card in cards:
-            # build a dictionary where to each card code corresponds the
-            # amount of that card the player wants to place down
-            split_card_str = list(card)  # split each character
-            seed = split_card_str[
-                len(split_card_str) - 1
-            ]  # get last character for seed
-            number = card[:-1]  # remaining characters are the number
-            card_str = str(number + seed)
-            if card_str not in cards_counted:
-                cards_counted[card_str] = 1
+            if card not in cards_counted:
+                cards_counted[card] = 1
             else:
-                cards_counted[card_str] = cards_counted[card_str] + 1
+                cards_counted[card] = cards_counted[card] + 1
 
         for card in cards:
             # for every card, see if the number of times it appear is greater than
             # the number of copies of it the player has in their hand
-            split_card_str = list(card)  # split each character
-            seed = split_card_str[
-                len(split_card_str) - 1
-            ]  # get last character for seed
-            number = card[:-1]  # remaining characters are the number
+            seed, number = CardsInHand.from_card_string(card)
             if (
                 CardsInHand.objects.filter(
-                    Q(player_id=player_id)
-                    & Q(card_seed=seed)
-                    & Q(card_number=int(number))
+                    player_id=player_id, card_seed=seed, card_number=int(number)
                 ).count()
-                < cards_counted[str(number + seed)]
+                < cards_counted[card]
             ):
-                return 1
-        return 0
+                return True
+        return False
 
     @database_sync_to_async
     def remove_from_hand(self, game_id, player_id, cards):
-        for card in cards:
-            split_card_str = list(card)  # split each character
-            seed = split_card_str[
-                len(split_card_str) - 1
-            ]  # get last character for seed
-            number = int(card[:-1])  # remaining characters are the number
-            card_in_hand = CardsInHand.objects.filter(
-                Q(player_id=player_id) & Q(card_seed=seed) & Q(card_number=number)
-            )[0]
-            card_in_hand.delete()
+        player = Player.objects.get(pk=player_id)
+        player.remove_cards_from_hand(cards)
 
     @database_sync_to_async
     def add_to_hand(self, game_id, player_id, cards):
-        for card in cards:
-            split_card_str = list(card)  # split each character
-            seed = split_card_str[
-                len(split_card_str) - 1
-            ]  # get last character for seed
-            number = int(card[:-1])  # remaining characters are the number
-
-            card_in_hand = CardsInHand(
-                card_seed=seed,
-                card_number=number,
-                player_id=Player.objects.get(pk=player_id),
-            )
-            card_in_hand.save()
+        player = Player.objects.get(pk=player_id)
+        player.add_cards_to_hand(cards)
 
     @database_sync_to_async
     def get_player_number(self, player_id):
@@ -717,12 +694,9 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_amount_of_card_in_hand(self, player_id, card_number):
-        length = len(
-            CardsInHand.objects.filter(
-                Q(player_id=player_id) & Q(card_number=card_number)
-            )
+        return len(
+            CardsInHand.objects.filter(player_id=player_id, card_number=card_number)
         )
-        return length
 
     @database_sync_to_async
     def remove_all_cards(self, player_id, card_number):
@@ -737,11 +711,6 @@ class GameConsumer(AsyncWebsocketConsumer):
         game = Game.objects.get(pk=game_id)
         game.winning_player = player_number
         game.save()
-
-    @database_sync_to_async
-    def get_winning_player(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        return game.winning_player
 
     @database_sync_to_async
     def get_game_state(self, game_id, player_id):
@@ -781,7 +750,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         if all_players_joined:
             state["current_turn"] = game.player_current_turn
-            state["number_of_stacked_cards"] = len(json.loads(game.stacked_cards))
+            state["number_of_stacked_cards"] = len(game.stacked_cards)
             state["all_players_joined"] = 1
         else:
             state["all_players_joined"] = 0
@@ -815,13 +784,13 @@ class GameConsumer(AsyncWebsocketConsumer):
         player = Player.objects.get(pk=player_id)
 
         player.has_left = True
-        player.save()
+        player.save(update_fields=["has_left"])
 
     @database_sync_to_async
     def set_game_has_been_won(self, game_id):
         game = Game.objects.get(pk=game_id)
         game.has_been_won = True
-        game.save()
+        game.save(update_fields=["has_been_won"])
 
     @database_sync_to_async
     def game_has_been_won(self, game_id):
@@ -841,7 +810,7 @@ class GameConsumer(AsyncWebsocketConsumer):
     def set_rejoined(self, player_id, to):
         player = Player.objects.get(pk=player_id)
         player.rejoined = to
-        player.save()
+        player.save(update_fields=["rejoined"])
 
     @database_sync_to_async
     def all_players_joined(self, game_id):
@@ -852,13 +821,13 @@ class GameConsumer(AsyncWebsocketConsumer):
     def increment_joined_players(self, game_id):
         game = Game.objects.get(pk=game_id)
         game.joined_players += 1
-        game.save()
+        game.save(update_fields=["joined_players"])
 
     @database_sync_to_async
     def increment_event_count(self, game_id):
         game = Game.objects.get(pk=game_id)
         game.events += 1
-        game.save()
+        game.save(update_fields=["events"])
 
 
 class MatchmakingConsumer(AsyncWebsocketConsumer):
@@ -869,7 +838,11 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.group, self.channel_name)
         await self.accept()
 
-        if await self.update_online_user_count_and_get_value(increment=1) > 1:
+        online_players_count = await self.update_online_user_count_and_get_value(
+            increment=1
+        )
+
+        if online_players_count > 1:
             await self.channel_layer.group_send(
                 self.group,
                 {
@@ -897,7 +870,9 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         # save new player id to session
         player = await self.create_new_player(self.player_name)
         self.scope["session"]["player_id"] = player.pk
-        await database_sync_to_async(self.scope["session"].save)()
+        await database_sync_to_async(
+            self.scope["session"].save
+        )()  # TODO what does this do?
 
         # look for an available game
         available_game = await self.get_available_game(less_than_joined_players=6)
@@ -923,7 +898,11 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             await self.join_user_to_game(player, new_game)
 
     async def disconnect(self, close_code):
-        if await self.update_online_user_count_and_get_value(increment=-1) < 2:
+        online_players_count = await self.update_online_user_count_and_get_value(
+            increment=-1
+        )
+
+        if online_players_count < 2:
             await self.channel_layer.group_send(
                 self.group,
                 {
@@ -937,20 +916,20 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(self.group, self.channel_name)
             return
 
-        game = await self.get_joined_game_from_player_id(
-            self.scope["session"]["player_id"]
-        )
+        session_player_id = self.scope["session"]["player_id"]
+
+        game = await self.get_joined_game_from_player_id(session_player_id)
 
         if game is None or await self.has_begun(game):
             await self.channel_layer.group_discard(self.group, self.channel_name)
             return
 
-        logging.info(str(self.scope["session"]["player_id"]) + " has left matchmaking")
+        logging.info(str(session_player_id) + " has left matchmaking")
 
         # delete player and decrement number of joined players to game
         await self.decrement_joined_players(game)
-        await self.delete_player_from_id(self.scope["session"]["player_id"])
-        print("deleting " + str(self.scope["session"]["player_id"]))
+        await self.delete_player_from_id(session_player_id)
+        print("deleting " + str(session_player_id))
 
         if await self.get_joined_players_number(game) == 1:
             # if the player who left was the last aside from the one that created the game,
@@ -1025,7 +1004,8 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         from random import choice
 
         qs = Game.objects.filter(
-            Q(is_public=True) & Q(joined_players__lt=less_than_joined_players)
+            is_public=True,
+            joined_players__lt=less_than_joined_players,
         )
         if qs.count() == 0:
             return None
@@ -1033,6 +1013,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def join_user_to_game(self, player, game):
+        # TODO use a count query instead of joined_players
         game.joined_players += 1
         game.number_of_players += 1
         game.save()
