@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,12 +29,16 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
+
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "dubitoapp.apps.DubitoappConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -84,7 +88,7 @@ WSGI_APPLICATION = "dubito.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR.parent / "db.sqlite3",
     }
 }
 
@@ -155,7 +159,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "dubitoapp/static/game"),)
 # ASGI_APPLICATION = "dubito.routing.application"
 
 # Channels
-ASGI_APPLICATION = "dubito.routing.application"
+ASGI_APPLICATION = "dubito.asgi.application"
 CHANNEL_LAYERS = {
     "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
 }
