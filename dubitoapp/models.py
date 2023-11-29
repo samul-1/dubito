@@ -36,7 +36,9 @@ class Game(models.Model):
     current_card = models.IntegerField(
         null=True, default=0
     )  # TODO positive small integer
-    last_card = models.IntegerField(null=True, default=0)  # TODO positive small integer
+
+    last_card = models.IntegerField(null=True, default=0)  # TODO unused, remove
+
     stacked_cards = models.JSONField(default=list, blank=True)
     last_amount_played = models.IntegerField(default=0)  # TODO positive small integer
     locked = models.BooleanField(
@@ -59,6 +61,94 @@ class Game(models.Model):
 
     def __str__(self):
         return str(self.code)
+
+    @classmethod
+    def try_lock(cls, game_id):
+        # atomically check if the game is locked and lock it if it isn't, returns True upon success
+        with transaction.atomic():
+            game = cls.objects.select_for_update().get(pk=game_id)
+            if game.locked:
+                return False
+            game.locked = True
+            game.save(update_fields=["locked"])
+            return True
+
+    def get_last_player(self):
+        return Player.objects.get(game_id=self.pk, player_number=self.player_last_turn)
+
+    # TODO make atomic
+    def perform_doubt(self, doubter_id):
+        stack = self.stacked_cards
+        uncovered_cards = self.stacked_cards[(-self.last_amount_played) :]
+        doubted_id = self.get_last_player().pk  # this is who was doubted
+
+        successful = False  # failure for who doubted
+        # compare cards against claimed card
+        claimed_card = self.current_card
+        for card in uncovered_cards:
+            _, number = CardsInHand.from_card_string(card)
+            if number != claimed_card and number != CardsInHand.JOKER_NUMBER:
+                successful = True  # success for who doubted
+                break
+
+        if successful:
+            winner, loser = Player.objects.get(pk=doubter_id), Player.objects.get(
+                pk=doubted_id
+            )
+        else:
+            winner, loser = Player.objects.get(pk=doubted_id), Player.objects.get(
+                pk=doubter_id
+            )
+
+        # add whole stack to loser's hand
+        for card in self.stacked_cards:
+            CardsInHand.create_from_card_string(card, loser.pk)
+
+        # remove any cards for which the loser has all seeds in their hand
+        removed_card_ranks, has_more_cards = loser.remove_complete_ranks_from_hand()
+        if not has_more_cards:
+            # TODO
+            pass
+
+        self.stacked_cards = []
+
+        self.save(update_fields=["stacked_cards"])
+
+        # it is now the winner's turn
+        self.update_turn(winner.player_number)
+
+        return {
+            "stack": stack,
+            "removed_ranks": removed_card_ranks,
+            "successful": successful,
+            "winner": winner,
+            "loser": loser,
+        }
+
+    # TODO make atomic
+    def perform_start_round(self, player_id, rank, cards):
+        self.current_card = rank
+        self.save(update_fields=["current_card"])
+
+        self.perform_play_cards(player_id, cards)
+
+    # TODO make atomic
+    def perform_play_cards(self, player_id, cards):
+        player = Player.objects.get(pk=player_id)
+        player.remove_cards_from_hand(cards)
+        self.stacked_cards = [*self.stacked_cards, *cards]
+        self.last_amount_played = len(cards)
+
+        self.save(update_fields=["stacked_cards", "last_amount_played"])
+
+        # TODO verify_or_revoke_victory, set_winning_player, and increment_turn
+
+    def update_turn(self, next_player_num):
+        self.player_last_turn, self.player_current_turn = (
+            self.player_current_turn,
+            next_player_num,
+        )
+        self.save(update_fields=["player_current_turn", "player_last_turn"])
 
     def instantiate(self):  # takes care of the game creation routine
         # generate a random code for the game
@@ -220,7 +310,7 @@ class Game(models.Model):
                 )
 
             # create record in db for curr_player having this card in their hand
-            CardsInHand.create_from_card_string(card, curr_player)
+            CardsInHand.create_from_card_string(card, curr_player.pk)
 
             idx += 1
 
@@ -248,9 +338,25 @@ class Player(models.Model):
         for card in cards:
             CardsInHand.remove_from_card_string(card, self)
 
+    def remove_complete_ranks_from_hand(self):
+        """
+        Removes from the hand of the player any cards for which they have all seeds.
+        Returns a list of the removed cards.
+        """
+        removed_card_ranks = []
+        for i in range(1, 14):
+            cards_in_hand = self.cards.filter(card_number=str(i))
+            if cards_in_hand.count() >= 8:
+                # if they have 8 copies of a card, discard those
+                cards_in_hand.delete()
+                removed_card_ranks.append(str(i))
+
+        has_more_cards = self.cards.all().exists()
+        return removed_card_ranks, has_more_cards
+
 
 class CardsInHand(models.Model):
-    player_id = models.ForeignKey(Player, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="cards")
     card_number = models.IntegerField()
     card_seed = models.CharField(max_length=1)
 
@@ -269,21 +375,21 @@ class CardsInHand(models.Model):
     def create_from_card_string(
         cls,
         card_string,
-        player,
+        player_id,
     ):
         seed, number = cls.from_card_string(card_string)
-        card_in_hand = cls(card_seed=seed, card_number=number, player_id=player)
+        card_in_hand = cls(card_seed=seed, card_number=number, player_id=player_id)
         card_in_hand.save()
 
     @classmethod
     def remove_from_card_string(
         cls,
         card_string,
-        player,
+        player_id,
     ):
         seed, number = cls.from_card_string(card_string)
         card_in_hand = cls.objects.filter(
-            card_seed=seed, card_number=number, player_id=player
+            card_seed=seed, card_number=number, player_id=player_id
         )[0]
         card_in_hand.delete()
 
