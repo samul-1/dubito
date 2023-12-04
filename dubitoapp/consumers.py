@@ -322,12 +322,15 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def check_current_player_online(self):
         game = await self.get_game()
+        # TODO simplify queries
         # verifies the current turn player is online, and if they aren't, passes turn onto next player
         current_turn_player_number = await self.get_current_turn(self.game_id)
         while (
-            not await self.is_online(
-                await self.get_player_id_from_number(
-                    self.game_id, current_turn_player_number
+            not (
+                await self.is_online(
+                    await self.get_player_id_from_number(
+                        self.game_id, current_turn_player_number
+                    )
                 )
             )
             and await self.number_of_online_players(self.game_id) > 0
@@ -343,8 +346,11 @@ class GameConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+    # Reactions & chat
+
     async def send_reaction(self, reaction):
         # Called when a player clicks on a reaction button
+        # TODO factor out the list of supported emojis
         if reaction not in [
             "laughing",
             "crying",
@@ -378,6 +384,8 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "message": message,
             },
         )
+
+    # Game state-related methods
 
     async def restart_game(self):
         # Called when a player wants to play again at the end of a game
@@ -417,7 +425,8 @@ class GameConsumer(AsyncWebsocketConsumer):
         # TODO eventually this won't be necessary
         await self.lock_game(self.game_id)
 
-    # HANDLERS
+    # Handlers
+
     async def game_state_handler(self, event):
         if self.player_id != event["player_id"]:
             return
@@ -478,7 +487,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
         )
 
-    # UTILS
+    # Utility methods
 
     @database_sync_to_async
     def number_of_online_players(self, game_id):
