@@ -76,6 +76,65 @@ class Game(models.Model):
     def get_last_player(self):
         return Player.objects.get(game_id=self.pk, player_number=self.player_last_turn)
 
+    def pass_turn(self):
+        return self.increment_turn(
+            skip_win_condition_check=True, skip_last_player_update=True
+        )
+
+    def increment_turn(self, **kwargs):
+        return self.update_turn(
+            (self.player_current_turn % self.number_of_players) + 1, **kwargs
+        )
+
+    def update_turn(
+        self,
+        next_player_num,
+        skip_win_condition_check=False,
+        skip_last_player_update=False,
+    ):
+        # when a player's turn ends, verify whether there was a player who
+        # had no cards left, and if they still have no cards left, they win
+        winner = (
+            self.verify_or_revoke_victory() if not skip_win_condition_check else None
+        )
+
+        update_fields = ["player_current_turn", "player_last_turn"]
+
+        # if the game hasn't been won, check whether the last player has more
+        # cards left, and if they don't, set that player as the winning player
+        if winner is None:
+            last_player_has_more_cards = self.players.get(
+                player_number=self.player_current_turn
+            ).cards.exists()
+
+            if not last_player_has_more_cards:
+                self.winning_player = self.player_current_turn
+                update_fields.append("winning_player")
+
+        # update the turn
+        self.player_last_turn, self.player_current_turn = (
+            self.player_current_turn
+            if not skip_last_player_update
+            else self.player_last_turn,
+            next_player_num,
+        )
+        self.save(update_fields=update_fields)
+
+        return winner
+
+    def verify_or_revoke_victory(self):
+        if self.winning_player == -1:
+            return
+        winning_player = self.players.get(player_number=self.winning_player)
+        if winning_player.cards.all().exists():
+            self.has_been_won = True
+            self.save(update_fields=["has_been_won"])
+            return self.winning_player
+
+        self.winning_player = -1
+        self.save(update_fields=["winning_player"])
+        return None
+
     # TODO make atomic
     def perform_doubt(self, doubter_id):
         stack = self.stacked_cards
@@ -91,14 +150,12 @@ class Game(models.Model):
                 successful = True  # success for who doubted
                 break
 
+        doubter = Player.objects.get(pk=doubter_id)
+        doubted = Player.objects.get(pk=doubted_id)
         if successful:
-            winner, loser = Player.objects.get(pk=doubter_id), Player.objects.get(
-                pk=doubted_id
-            )
+            winner, loser = doubter, doubted
         else:
-            winner, loser = Player.objects.get(pk=doubted_id), Player.objects.get(
-                pk=doubter_id
-            )
+            winner, loser = doubted, doubter
 
         # add whole stack to loser's hand
         for card in self.stacked_cards:
@@ -107,17 +164,17 @@ class Game(models.Model):
         # remove any cards for which the loser has all seeds in their hand
         removed_card_ranks, has_more_cards = loser.remove_complete_ranks_from_hand()
         if not has_more_cards:
-            # TODO
-            pass
+            self.winning_player = loser.player_number
+            self.save(update_fields=["winning_player"])
 
         self.stacked_cards = []
 
         self.save(update_fields=["stacked_cards"])
 
         # it is now the winner's turn
-        self.update_turn(winner.player_number)
+        winner = self.update_turn(winner.player_number)
 
-        return {
+        return winner, {
             "stack": stack,
             "removed_ranks": removed_card_ranks,
             "successful": successful,
@@ -130,25 +187,22 @@ class Game(models.Model):
         self.current_card = rank
         self.save(update_fields=["current_card"])
 
-        self.perform_play_cards(player_id, cards)
+        return self.perform_play_cards(player_id, cards)
 
     # TODO make atomic
     def perform_play_cards(self, player_id, cards):
         player = Player.objects.get(pk=player_id)
+
+        # remove cards from player's hand and add them to the stack
         player.remove_cards_from_hand(cards)
         self.stacked_cards = [*self.stacked_cards, *cards]
+
         self.last_amount_played = len(cards)
 
         self.save(update_fields=["stacked_cards", "last_amount_played"])
 
-        # TODO verify_or_revoke_victory, set_winning_player, and increment_turn
-
-    def update_turn(self, next_player_num):
-        self.player_last_turn, self.player_current_turn = (
-            self.player_current_turn,
-            next_player_num,
-        )
-        self.save(update_fields=["player_current_turn", "player_last_turn"])
+        winner = self.increment_turn()
+        return winner
 
     def instantiate(self):  # takes care of the game creation routine
         # generate a random code for the game
@@ -316,7 +370,10 @@ class Game(models.Model):
 
 
 class Player(models.Model):
-    game_id = models.ForeignKey(Game, on_delete=models.CASCADE, null=True, default=None)
+    # TODO change to `game`
+    game_id = models.ForeignKey(
+        Game, on_delete=models.CASCADE, null=True, default=None, related_name="players"
+    )
     player_number = models.IntegerField(default=1)
     name = models.CharField(max_length=10)
     is_online = models.BooleanField(default=False)
@@ -337,6 +394,9 @@ class Player(models.Model):
     def remove_cards_from_hand(self, cards):
         for card in cards:
             CardsInHand.remove_from_card_string(card, self)
+
+        has_more_cards = self.cards.all().exists()
+        return has_more_cards
 
     def remove_complete_ranks_from_hand(self):
         """

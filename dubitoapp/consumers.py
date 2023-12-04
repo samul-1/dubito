@@ -69,6 +69,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        game = await self.get_game()
         await self.channel_layer.group_discard(self.game_group_name, self.channel_name)
 
         # mark player as offline
@@ -80,15 +81,16 @@ class GameConsumer(AsyncWebsocketConsumer):
             }
         )
 
+        # player left during their turn
         if await self.get_player_number(self.player_id) == await self.get_current_turn(
             self.game_id
         ):
-            # player left during their turn
             await asyncio.sleep(5)  # give the player a chance to come back
-            if not await self.is_online(
-                self.player_id
-            ):  # player hasn't come back after 5 seconds
-                await self.pass_turn(self.game_id)  # pass turn onto next player
+
+            # player hasn't come back after 5 seconds
+            if not await self.is_online(self.player_id):
+                await sync_to_async(game.pass_turn)()
+
                 await self.send_new_state_to_all_players(
                     {
                         "type": "pass_turn",
@@ -129,6 +131,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         logging.info("event processed correctly")
 
     async def start_round(self, claimed_card, cards):
+        # TODO all these checks should be done inside the lock, especially the lock check
         game = await self.get_game()
         # Sends claimed card information and saves placed cards to db
         if await self.check_card_possession(self.game_id, self.player_id, cards):
@@ -177,21 +180,14 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         async with self.get_lock_game_manager():
             # update current card, place selected cards onto the stack, and remove them from player's hand
-            await sync_to_async(game.perform_start_round)(
+            game_winner = await sync_to_async(game.perform_start_round)(
                 self.player_id,
                 claimed_card,
                 cards,
             )
 
-            # TODO put the instructions below into the perform_start_round method
-            # if a player had zero cards and was eligible to win, verify they still have zero cards after this action
-            await self.verify_or_revoke_victory(self.game_id)
-
-            if not await self.get_number_of_cards_in_hand(self.player_id):
-                # player has no more cards; set them as eligible to win
-                await self.set_winning_player(
-                    self.game_id, await self.get_player_number(self.player_id)
-                )
+            if game_winner is not None:
+                await self.send_game_has_been_won()
 
             # contains information specific to this type of event that will be used by the client
             # to play the corresponding animations
@@ -201,34 +197,12 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "number_of_cards_placed": len(cards),
             }
 
-            await self.increment_turn(self.game_id)
             await self.send_new_state_to_all_players(event_specifics)
 
         await self.check_current_player_online()  # handle the case where current player isn't online
 
-    async def check_current_player_online(self):
-        # verifies the current turn player is online, and if they aren't, passes turn onto next player
-        current_turn_player_number = await self.get_current_turn(self.game_id)
-        while (
-            not await self.is_online(
-                await self.get_player_id_from_number(
-                    self.game_id, current_turn_player_number
-                )
-            )
-            and await self.number_of_online_players(self.game_id) > 0
-        ):
-            # if player isn't online, increment turn, and iterate until you find a player that is online
-            await self.pass_turn(self.game_id)
-            current_turn_player_number = await self.get_current_turn(self.game_id)
-
-            await self.send_new_state_to_all_players(
-                {
-                    "type": "pass_turn",
-                }
-            )
-
     async def doubt(self):
-        # TODO check locking and lock atomically
+        # TODO all these checks should be done inside the lock, especially the lock check
         if await self.is_locked(self.game_id):
             # someone else got here first
             logging.warning(
@@ -259,9 +233,12 @@ class GameConsumer(AsyncWebsocketConsumer):
             return
 
         async with self.get_lock_game_manager():
-            outcome = await sync_to_async(game.perform_doubt)(self.player_id)
+            outcome, game_winner = await sync_to_async(game.perform_doubt)(
+                self.player_id
+            )
 
-            await self.verify_or_revoke_victory(self.game_id)
+            if game_winner is not None:
+                await self.send_game_has_been_won()
 
             event_specifics = {
                 "type": "doubt",
@@ -282,6 +259,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.check_current_player_online()  # handle the case where current player isn't online
 
     async def place_cards(self, cards):
+        # TODO all these checks should be done inside the lock, especially the lock check
         game = await self.get_game()
         # Sends amount of cards of current number placed and saves placed cards to db
         if await self.check_card_possession(self.game_id, self.player_id, cards):
@@ -322,20 +300,13 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         async with self.get_lock_game_manager():
             # place selected cards onto the stack and remove them from user's hand
-            await sync_to_async(game.perform_play_cards)(
+            game_winner = await sync_to_async(game.perform_play_cards)(
                 self.player_id,
                 cards,
             )
 
-            # if there was a player eligible for winning, check they still have zero cards
-            await self.verify_or_revoke_victory(self.game_id)
-
-            if not await self.get_number_of_cards_in_hand(
-                self.player_id
-            ):  # player has no more cards
-                await self.set_winning_player(
-                    self.game_id, player_number
-                )  # TODO replace player number with player id
+            if game_winner is not None:
+                await self.send_game_has_been_won()
 
             # contains information specific to this type of event that will be used by the client
             # to play the corresponding animations
@@ -345,10 +316,32 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "number_of_cards_placed": len(cards),
             }
 
-            await self.increment_turn(self.game_id)
             await self.send_new_state_to_all_players(event_specifics)
 
         await self.check_current_player_online()  # handle the case where current player isn't online
+
+    async def check_current_player_online(self):
+        game = await self.get_game()
+        # verifies the current turn player is online, and if they aren't, passes turn onto next player
+        current_turn_player_number = await self.get_current_turn(self.game_id)
+        while (
+            not await self.is_online(
+                await self.get_player_id_from_number(
+                    self.game_id, current_turn_player_number
+                )
+            )
+            and await self.number_of_online_players(self.game_id) > 0
+        ):
+            # if player isn't online, increment turn, and iterate until you find a player that is online
+            await sync_to_async(game.pass_turn)()
+
+            current_turn_player_number = await self.get_current_turn(self.game_id)
+
+            await self.send_new_state_to_all_players(
+                {
+                    "type": "pass_turn",
+                }
+            )
 
     async def send_reaction(self, reaction):
         # Called when a player clicks on a reaction button
@@ -409,27 +402,20 @@ class GameConsumer(AsyncWebsocketConsumer):
             },
         )
 
-    async def verify_or_revoke_victory(self, game_id):
-        # if there was a player with zero cards on last turn, and they
-        # still have zero cards after next event, they win
+    async def send_game_has_been_won(self):
         game = await self.get_game()
         winning_player = game.winning_player
+        winning_player_id = await self.get_player_id_from_number(
+            self.game_id, winning_player
+        )
 
-        if winning_player != -1:  # TODO replace -1 with None
-            winning_player_id = await self.get_player_id_from_number(
-                self.game_id, winning_player
-            )
-            if not await self.get_number_of_cards_in_hand(winning_player_id):
-                event_specifics = {
-                    "type": "player_won",
-                    "winner": await self.get_player_name(winning_player_id),
-                }
-                await self.send_new_state_to_all_players(event_specifics)
-                await self.set_game_has_been_won(self.game_id)
-                await self.lock_game(self.game_id)
-            else:
-                # if player now has more than 0 cards, they aren't eligible for winning anymore
-                await self.set_winning_player(self.game_id, -1)
+        event_specifics = {
+            "type": "player_won",
+            "winner": await self.get_player_name(winning_player_id),
+        }
+        await self.send_new_state_to_all_players(event_specifics)
+        # TODO eventually this won't be necessary
+        await self.lock_game(self.game_id)
 
     # HANDLERS
     async def game_state_handler(self, event):
@@ -507,16 +493,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             game.player_current_turn % game.number_of_players
         ) + 1
         game.save(update_fields=["player_last_turn", "player_current_turn"])
-
-    @database_sync_to_async
-    def pass_turn(self, game_id):
-        # increments turn but doesn't update player_last_turn
-        # (used for skipping turns of offline players)
-        game = Game.objects.get(pk=game_id)
-        game.player_current_turn = (
-            game.player_current_turn % game.number_of_players
-        ) + 1
-        game.save(update_fields=["player_current_turn"])
 
     @database_sync_to_async
     def get_hand(self, player_id):
