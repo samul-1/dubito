@@ -125,8 +125,9 @@ class Game(models.Model):
     def verify_or_revoke_victory(self):
         if self.winning_player == -1:
             return
+
         winning_player = self.players.get(player_number=self.winning_player)
-        if winning_player.cards.all().exists():
+        if not winning_player.cards.all().exists():
             self.has_been_won = True
             self.save(update_fields=["has_been_won"])
             return self.winning_player
@@ -163,6 +164,7 @@ class Game(models.Model):
 
         # remove any cards for which the loser has all seeds in their hand
         removed_card_ranks, has_more_cards = loser.remove_complete_ranks_from_hand()
+
         if not has_more_cards:
             self.winning_player = loser.player_number
             self.save(update_fields=["winning_player"])
@@ -172,15 +174,14 @@ class Game(models.Model):
         self.save(update_fields=["stacked_cards"])
 
         # it is now the winner's turn
-        winner = self.update_turn(winner.player_number)
+        game_winner = self.update_turn(winner.player_number)
 
-        return winner, {
+        return {
             "stack": stack,
             "removed_ranks": removed_card_ranks,
             "successful": successful,
-            "winner": winner,
             "loser": loser,
-        }
+        }, game_winner
 
     # TODO make atomic
     def perform_start_round(self, player_id, rank, cards):
@@ -345,7 +346,7 @@ class Game(models.Model):
         ]
 
         # compute how many cards each player will have and the remainder
-        cards_per_player = int(108 / self.number_of_players)
+        cards_per_player = int(len(deck) / self.number_of_players)
 
         random.shuffle(deck)  # shuffle the deck
         # deal cards_per_player cards to each player
