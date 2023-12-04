@@ -146,7 +146,7 @@ class Game(models.Model):
         # compare cards against claimed card
         claimed_card = self.current_card
         for card in uncovered_cards:
-            _, number = CardsInHand.from_card_string(card)
+            number, _ = CardsInHand.from_card_string(card)
             if number != claimed_card and number != CardsInHand.JOKER_NUMBER:
                 successful = True  # success for who doubted
                 break
@@ -429,8 +429,8 @@ class CardsInHand(models.Model):
     ):
         split_card_str = list(card_string)  # split each character
         seed = split_card_str[len(split_card_str) - 1]  # get last character for seed
-        number = int(card_string[:-1])  # remaining characters are the number
-        return (seed, number)
+        rank = int(card_string[:-1])  # remaining characters are the number
+        return (rank, seed)
 
     @classmethod
     def create_from_card_string(
@@ -438,7 +438,7 @@ class CardsInHand(models.Model):
         card_string,
         player_id,
     ):
-        seed, number = cls.from_card_string(card_string)
+        number, seed = cls.from_card_string(card_string)
         card_in_hand = cls(card_seed=seed, card_number=number, player_id=player_id)
         card_in_hand.save()
 
@@ -448,7 +448,7 @@ class CardsInHand(models.Model):
         card_string,
         player_id,
     ):
-        seed, number = cls.from_card_string(card_string)
+        number, seed = cls.from_card_string(card_string)
         card_in_hand = cls.objects.filter(
             card_seed=seed, card_number=number, player_id=player_id
         )[0]
