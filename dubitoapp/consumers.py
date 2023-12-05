@@ -356,14 +356,11 @@ class GameConsumer(AsyncWebsocketConsumer):
 
             # sleep to simulate thinking - we make this longer when starting a round to
             # account for animations on the client side
-            # TODO make the sleep time dependent on the length the stack had when it was last doubted
+            # TODO make the sleep time dependent on the length the stack had when it was last doubted, try to estimate the duration of the animation
             await asyncio.sleep(
                 *((9, 12) if len(game.stacked_cards) == 0 else (1.5, 5))
             )
 
-            # TODO the manager should check if the game is locked already and only lock it if it isn't,
-            # TODO have an option to either wait for the lock or return immediately, and inside the lock check
-            # TODO if it's still the AI's turn
             async with self.get_lock_game_manager() as success:
                 if not success:
                     # someone else got here first
@@ -409,6 +406,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                     action = move["action"]
 
                     if action == "doubt":
+                        # TODO it shows "human player" doubted! in the frontend - investigate
                         outcome, game_winner = await sync_to_async(game.perform_doubt)(
                             current_player.pk
                         )
@@ -882,9 +880,9 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         # save new player id to session
         player = await self.create_new_player(self.player_name)
         self.scope["session"]["player_id"] = player.pk
-        await database_sync_to_async(
-            self.scope["session"].save
-        )()  # TODO what does this do?
+
+        # TODO what does this do?
+        await database_sync_to_async(self.scope["session"].save)()
 
         # look for an available game
         available_game = await self.get_available_game(less_than_joined_players=6)
@@ -900,14 +898,18 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
                     "game_id": available_game.pk,
                 },
             )
+            # TODO this has to be repeated in the join_ai_players method, find a way to listen for the number of players and trigger this
             if available_game.joined_players == 2:
                 # as soon as the second player joins, schedule dealing of cards
                 loop = asyncio.get_event_loop()
                 loop.create_task(self.deal_cards_task(available_game.pk))
-        # create a new game
-        else:
+        else:  # create a new game
             new_game = await self.create_public_game()
             await self.join_user_to_game(player, new_game)
+            # ensure there are at least 4 players by creating AI players
+
+            event_loop = asyncio.get_event_loop()
+            event_loop.create_task(self.join_ai_players(new_game.pk))
 
     async def disconnect(self, close_code):
         online_players_count = await self.update_online_user_count_and_get_value(
@@ -933,6 +935,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         game = await self.get_joined_game_from_player_id(session_player_id)
 
         if game is None or await self.has_begun(game):
+            # don't delete player if they're in a game that has already begun
             await self.channel_layer.group_discard(self.group, self.channel_name)
             return
 
@@ -940,8 +943,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
 
         # delete player and decrement number of joined players to game
         await self.decrement_joined_players(game)
-        await self.delete_player_from_id(session_player_id)
-        print("deleting " + str(session_player_id))
+        await self.delete_player_by_id(session_player_id)
 
         if await self.get_joined_players_number(game) == 1:
             # if the player who left was the last aside from the one that created the game,
@@ -957,6 +959,33 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         # if player was the only one online, delete the game that was created due to them connecting
         await self.delete_game_if_no_players(game)
         await self.channel_layer.group_discard(self.group, self.channel_name)
+
+    # AI related methods
+    async def join_ai_players(self, game_id, min_players=4, wait_time=2):
+        if wait_time:
+            await asyncio.sleep(wait_time)
+
+        game = await sync_to_async(Game.objects.get)(pk=game_id)
+        joined_players = game.joined_players
+
+        if joined_players == 1:
+            # trigger dealing of cards
+            loop = asyncio.get_event_loop()
+            loop.create_task(self.deal_cards_task(game_id))
+
+        for _ in range(min_players - joined_players):
+            ai_player = await sync_to_async(Player.create_ai_player)(game)
+            await self.join_user_to_game(ai_player, game)
+
+            await self.channel_layer.group_send(
+                self.group,
+                {
+                    "type": "player_found_handler",
+                    "game_id": game.pk,
+                },
+            )
+
+    # Handlers
 
     async def player_found_handler(self, event):
         if self.scope["session"]["player_id"] not in await sync_to_async(list)(
@@ -1025,7 +1054,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def join_user_to_game(self, player, game):
-        # TODO use a count query instead of joined_players
+        # TODO prevent race conditions
         game.joined_players += 1
         game.number_of_players += 1
         game.save()
@@ -1058,8 +1087,12 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             return
         game.deal_cards_to_players()
         game.is_public = False
-        game.player_current_turn = random.randint(1, game.number_of_players)
-        game.save()
+
+        # select a non-AI player at random to start the game
+        non_ai_players = game.players.filter(game_id=game_id, is_ai=False)
+        game.player_current_turn = random.choice(non_ai_players).player_number
+
+        game.save(update_fields=["is_public", "player_current_turn"])
 
     @database_sync_to_async
     def get_joined_game_from_player_id(self, player_id):
@@ -1080,7 +1113,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         game.save()
 
     @database_sync_to_async
-    def delete_player_from_id(self, player_id):
+    def delete_player_by_id(self, player_id):
         player = Player.objects.get(pk=player_id)
         player.delete()
 

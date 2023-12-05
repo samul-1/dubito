@@ -394,6 +394,18 @@ class Player(models.Model):
     def __str__(self):
         return str(self.pk)
 
+    @classmethod
+    def create_ai_player(cls, game_id):
+        # call the player with a robot emoji, the word `Robocop`,
+        # and a random number between 1 and 1000
+        player = cls(
+            name=f"🤖 Robocop {random.randint(1, 1000)}",
+            is_ai=True,
+            is_online=True,
+        )
+        player.save()
+        return player
+
     def add_cards_to_hand(self, cards):
         for card in cards:
             CardsInHand.create_from_card_string(card, self)

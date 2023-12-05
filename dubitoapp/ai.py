@@ -38,6 +38,8 @@ class DubitoAI:
         current_rank = self.game_state["current_rank"]
         cards_in_hand = self.game_state["my_hand"]
 
+        # TODO factor in stack length and how many cards of the called rank the player has already played
+
         num_same_rank_in_hand = sum(
             1
             for card in cards_in_hand
@@ -53,7 +55,7 @@ class DubitoAI:
         probability_of_doubting = probability_base * (1 - probability_adjustment)
 
         # Avoid being too predictable
-        randomness_factor = random.uniform(0.1, 0.3)
+        randomness_factor = random.uniform(0.1, 0.4)
         probability_of_doubting += randomness_factor
 
         # Cap probability to avoid always or never doubting
