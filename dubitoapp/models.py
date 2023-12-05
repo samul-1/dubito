@@ -74,7 +74,7 @@ class Game(models.Model):
             return True
 
     def get_last_player(self):
-        return Player.objects.get(game_id=self.pk, player_number=self.player_last_turn)
+        return self.players.get(player_number=self.player_last_turn)
 
     def pass_turn(self):
         return self.increment_turn(
@@ -351,7 +351,7 @@ class Game(models.Model):
         random.shuffle(deck)  # shuffle the deck
         # deal cards_per_player cards to each player
         curr_player_num = 1
-        curr_player = Player.objects.get(game_id=self.pk, player_number=curr_player_num)
+        curr_player = self.players.get(player_number=curr_player_num)
         idx = 1
 
         for card in deck:
@@ -360,9 +360,7 @@ class Game(models.Model):
             ) == 0 and curr_player_num != self.number_of_players:
                 # we're done dealing to this player and there are more players; onto the next player
                 curr_player_num += 1
-                curr_player = Player.objects.get(
-                    game_id=self.pk, player_number=curr_player_num
-                )
+                curr_player = self.players.get(player_number=curr_player_num)
 
             # create record in db for curr_player having this card in their hand
             CardsInHand.create_from_card_string(card, curr_player.pk)
@@ -371,8 +369,7 @@ class Game(models.Model):
 
 
 class Player(models.Model):
-    # TODO change to `game`
-    game_id = models.ForeignKey(
+    game = models.ForeignKey(
         Game, on_delete=models.CASCADE, null=True, default=None, related_name="players"
     )
     player_number = models.IntegerField(default=1)
@@ -384,6 +381,7 @@ class Player(models.Model):
     rejoined = models.BooleanField(
         default=True
     )  # True if player has rejoined the game once it's restarted
+    is_ai = models.BooleanField(default=False)  # True if player is an AI
 
     def __str__(self):
         return str(self.pk)

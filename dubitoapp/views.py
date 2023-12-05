@@ -7,8 +7,6 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.generic import CreateView
 import json
 
-# from django.contrib.auth.decorators import login_required
-
 
 def get_joined_players(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
@@ -28,12 +26,11 @@ def create_new_game(request):
             new_game.save()  # save new game to db
 
             # create first player
-            new_player = Player(
-                name=form.cleaned_data["creator_name"], game_id=new_game
-            )
+            new_player = Player(name=form.cleaned_data["creator_name"], game=new_game)
             new_player.save()
 
             # create new session to allow the user to play the game
+            # TODO figure out how to migrate this to drf, possibly in a utility function that creates the player and sets the session
             request.session["player_id"] = new_player.pk
 
             return JsonResponse(
@@ -53,6 +50,8 @@ def create_new_game(request):
         else:
             return JsonResponse(form.errors.as_json(), safe=False, status=400)
     else:
+        # this is executed when the player visits the home page - instantiate forms and render page
+
         # set a dummy player id in player's session. this is needed to make channels session persistence work (for matchmaking)
         if "player_id" not in request.session:
             request.session["player_id"] = 0
@@ -90,18 +89,21 @@ def join_game(request):
         game.save()
         # create player and append it to this game
         new_player = Player(
-            name=input_name, game_id=game, player_number=game.joined_players
+            name=input_name, game=game, player_number=game.joined_players
         )
         new_player.save()
 
         # create new session to allow user to play
+        # TODO figure out how to migrate this to drf, possibly in a utility function that creates the player and sets the session
         request.session["player_id"] = new_player.pk
 
         if new_player.player_number == game.number_of_players:
+            # TODO this should be done in the game model
             # last player joined: deal cards to all players; game can now being
             game.deal_cards_to_players()
 
         return JsonResponse(game.pk, safe=False)
+    # TODO return error message if game is full
 
 
 def game(request, game_id):
@@ -116,13 +118,14 @@ def game(request, game_id):
     # get players who joined this game
     players = Player.objects.filter(game_id=game_id)
 
-    if (
-        "player_id" not in request.session
-    ):  # check if user has a session variable player_id
+    # TODO figure out how to perform this check in drf
+    # check if user has a session variable player_id
+    if "player_id" not in request.session:
         err_str = "Unauthenticated user"
 
+    # check if this player has joined the game
     this_player = get_object_or_404(Player, pk=request.session["player_id"])
-    if this_player not in players:  # check if this player has joined the game
+    if this_player not in players:
         err_str = "La partita richiesta non esiste o si è già conclusa."
 
     if err_str != "":
@@ -164,6 +167,7 @@ def feedback_create(request):
 
 
 def restart_game(request, game_id):
+    # TODO restarting a game should be completely refactored
     this_game = get_object_or_404(Game, pk=game_id)
 
     # if game isn't over, redirect to home

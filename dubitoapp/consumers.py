@@ -98,7 +98,6 @@ class GameConsumer(AsyncWebsocketConsumer):
                 )
                 await self.check_current_player_online()  # verify that next player is online
 
-    # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         action = text_data_json["type"]
@@ -129,6 +128,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.restart_game()
 
         logging.info("event processed correctly")
+
+    # Game logic methods
 
     async def start_round(self, claimed_card, cards):
         # TODO all these checks should be done inside the lock, especially the lock check
@@ -320,6 +321,8 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         await self.check_current_player_online()  # handle the case where current player isn't online
 
+    # Checks
+
     async def check_current_player_online(self):
         game = await self.get_game()
         # TODO simplify queries
@@ -491,8 +494,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def number_of_online_players(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        return Player.objects.filter(game_id=game, is_online=True).count()
+        return Player.objects.filter(game_id=game_id, is_online=True).count()
 
     @database_sync_to_async
     def increment_turn(self, game_id):
@@ -593,7 +595,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         for card in cards:
             # for every card, see if the number of times it appear is greater than
             # the number of copies of it the player has in their hand
-            seed, number = CardsInHand.from_card_string(card)
+            number, seed = CardsInHand.from_card_string(card)
             if (
                 CardsInHand.objects.filter(
                     player_id=player_id, card_seed=seed, card_number=int(number)
@@ -611,9 +613,7 @@ class GameConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_player_id_from_number(self, game_id, player_num):
         try:
-            return Player.objects.get(
-                Q(game_id=game_id) & Q(player_number=player_num)
-            ).pk
+            return Player.objects.get(game_id=game_id, player_number=player_num).pk
         except Player.DoesNotExist:
             return None
 
@@ -949,7 +949,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         game.save()
 
         player.player_number = game.joined_players
-        player.game_id = game
+        player.game = game
         player.save()
 
     @database_sync_to_async
@@ -982,7 +982,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_joined_game_from_player_id(self, player_id):
         try:
-            return Player.objects.get(pk=player_id).game_id
+            return Player.objects.get(pk=player_id).game
         except:
             return None
 
