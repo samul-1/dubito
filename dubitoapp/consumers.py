@@ -1,9 +1,13 @@
 import json
+import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.exceptions import StopConsumer
 import logging
 from channels.db import database_sync_to_async
 import asyncio
+
+from dubitoapp.ai import DubitoAI
+from dubitoapp.types import consumer_game_state_to_game_state
 from .models import Game, Player, CardsInHand, Info
 from django.db.models import Q
 from asgiref.sync import sync_to_async
@@ -17,7 +21,8 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         class AsyncLockGameManager:
             async def __aenter__(self):
-                await lock_game(game_id)
+                success = await lock_game(game_id)
+                return success
 
             async def __aexit__(self, exc_type, exc, tb):
                 if exc_type is not None:
@@ -144,15 +149,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
             return
 
-        # TODO use try_lock from Game instead of separately checking and locking
-        if await self.is_locked(self.game_id):
-            # someone else got here first
-            logging.warning(
-                await self.get_player_name(self.player_id)
-                + " is trying to start round while game is locked"
-            )
-            return
-
         if await self.get_current_turn(self.game_id) != await self.get_player_number(
             self.player_id
         ):
@@ -179,7 +175,14 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
             return
 
-        async with self.get_lock_game_manager():
+        async with self.get_lock_game_manager() as success:
+            if not success:
+                # someone else got here first
+                logging.warning(
+                    await self.get_player_name(self.player_id)
+                    + " is trying to start round while game is locked"
+                )
+                return
             # update current card, place selected cards onto the stack, and remove them from player's hand
             game_winner = await sync_to_async(game.perform_start_round)(
                 self.player_id,
@@ -201,6 +204,9 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.send_new_state_to_all_players(event_specifics)
 
         await self.check_current_player_online()  # handle the case where current player isn't online
+
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.play_ai_turns())
 
     async def doubt(self):
         # TODO all these checks should be done inside the lock, especially the lock check
@@ -233,7 +239,15 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
             return
 
-        async with self.get_lock_game_manager():
+        async with self.get_lock_game_manager() as success:
+            if not success:
+                # someone else got here first
+                logging.warning(
+                    await self.get_player_name(self.player_id)
+                    + " is trying to doubt while game is locked"
+                )
+                return
+
             outcome, game_winner = await sync_to_async(game.perform_doubt)(
                 self.player_id
             )
@@ -259,6 +273,9 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         await self.check_current_player_online()  # handle the case where current player isn't online
 
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.play_ai_turns())
+
     async def place_cards(self, cards):
         # TODO all these checks should be done inside the lock, especially the lock check
         game = await self.get_game()
@@ -269,14 +286,6 @@ class GameConsumer(AsyncWebsocketConsumer):
                 await self.get_player_name(self.player_id)
                 + " is trying to place cards they don't have: "
                 + str(cards)
-            )
-            return
-
-        if await self.is_locked(self.game_id):
-            # someone else got here first
-            logging.warning(
-                await self.get_player_name(self.player_id)
-                + " is trying to place cards while game is locked"
             )
             return
 
@@ -299,7 +308,14 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
             return
 
-        async with self.get_lock_game_manager():
+        async with self.get_lock_game_manager() as success:
+            if not success:
+                # someone else got here first
+                logging.warning(
+                    await self.get_player_name(self.player_id)
+                    + " is trying to place cards while game is locked"
+                )
+                return
             # place selected cards onto the stack and remove them from user's hand
             game_winner = await sync_to_async(game.perform_play_cards)(
                 self.player_id,
@@ -320,6 +336,117 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.send_new_state_to_all_players(event_specifics)
 
         await self.check_current_player_online()  # handle the case where current player isn't online
+
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.play_ai_turns())
+
+    # AI engine
+
+    async def play_ai_turns(self):
+        """
+        This method is called at the end of every human player's turn.
+        It cycles for as long as the current turn player is an AI, and makes the AI play.
+        """
+        game = await self.get_game()
+        current_player = await self.get_current_player(self.game_id)
+
+        while current_player.is_ai:
+            game_state = await self.get_game_state(self.game_id, current_player.pk)
+            ai = DubitoAI(consumer_game_state_to_game_state(game_state))
+
+            # sleep to simulate thinking - we make this longer when starting a round to
+            # account for animations on the client side
+            # TODO make the sleep time dependent on the length the stack had when it was last doubted
+            await asyncio.sleep(
+                *((9, 12) if len(game.stacked_cards) == 0 else (1.5, 5))
+            )
+
+            # TODO the manager should check if the game is locked already and only lock it if it isn't,
+            # TODO have an option to either wait for the lock or return immediately, and inside the lock check
+            # TODO if it's still the AI's turn
+            async with self.get_lock_game_manager() as success:
+                if not success:
+                    # someone else got here first
+                    logging.warning(
+                        f"{current_player.name} is trying to play while game is locked"
+                    )
+                    return
+
+                # now that the game is locked, check if it's still the AI's turn
+                if (
+                    await self.get_current_turn(self.game_id)
+                    != current_player.player_number
+                ):
+                    # wrong player trying to play
+                    logging.warning(
+                        f"{current_player.name} is trying to play but it's wrong turn"
+                    )
+                    return
+
+                # if the stack is empty, the AI will start a new round
+                if len(game.stacked_cards) == 0:
+                    move = ai.start_round()
+                    claimed_card = move["rank"]
+                    cards = move["cards"]
+
+                    # update current card, place selected cards onto the stack, and remove them from player's hand
+                    game_winner = await sync_to_async(game.perform_start_round)(
+                        current_player.pk,
+                        claimed_card,
+                        cards,
+                    )
+
+                    # contains information specific to this type of event that will be used by the client
+                    # to play the corresponding animations
+                    event_specifics = {
+                        "type": "cards_placed",
+                        "by_who": current_player.player_number,
+                        "number_of_cards_placed": len(cards),
+                    }
+
+                else:
+                    move = ai.play_turn()
+                    action = move["action"]
+
+                    if action == "doubt":
+                        outcome, game_winner = await sync_to_async(game.perform_doubt)(
+                            current_player.pk
+                        )
+
+                        event_specifics = {
+                            "type": "doubt",
+                            "who_doubted": await self.get_player_name(self.player_id),
+                            # TODO this is redundant, remove when you fix frontend
+                            "who_doubted_number": current_player.player_number,
+                            "who_was_doubted": await self.get_player_name(
+                                game.player_last_turn
+                            ),
+                            # TODO rename to successful in frontend
+                            "outcome": outcome["successful"],
+                            # TODO rename to just stack in frontend
+                            "whole_stack": outcome["stack"],
+                            "copies_removed": outcome["removed_ranks"],
+                            "losing_player": outcome["loser"].name,
+                        }
+
+                    else:  # action == "play"
+                        cards = move["cards"]
+                        game_winner = await sync_to_async(game.perform_play_cards)(
+                            current_player.pk,
+                            cards,
+                        )
+                        event_specifics = {
+                            "type": "cards_placed",
+                            "by_who": current_player.player_number,
+                            "number_of_cards_placed": len(cards),
+                        }
+
+                if game_winner is not None:
+                    await self.send_game_has_been_won()
+
+                await self.send_new_state_to_all_players(event_specifics)
+
+            current_player = await self.get_current_player(self.game_id)
 
     # Checks
 
@@ -497,15 +624,6 @@ class GameConsumer(AsyncWebsocketConsumer):
         return Player.objects.filter(game_id=game_id, is_online=True).count()
 
     @database_sync_to_async
-    def increment_turn(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        game.player_last_turn = game.player_current_turn
-        game.player_current_turn = (
-            game.player_current_turn % game.number_of_players
-        ) + 1
-        game.save(update_fields=["player_last_turn", "player_current_turn"])
-
-    @database_sync_to_async
     def get_hand(self, player_id):
         cards = CardsInHand.objects.filter(player_id=player_id)
         return list(cards.values("card_seed", "card_number"))
@@ -517,19 +635,21 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def lock_game(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        game.locked = True
-        game.save(update_fields=["locked"])
+        return Game.try_lock(game_id)
 
     @database_sync_to_async
     def unlock_game(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        game.locked = False
-        game.save(update_fields=["locked"])
+        return Game.unlock(game_id)
 
     @database_sync_to_async
     def get_game(self):
         return Game.objects.get(pk=self.game_id)
+
+    @database_sync_to_async
+    def get_current_player(self, game_id):
+        game = Game.objects.get(pk=game_id)
+        current_turn = game.player_current_turn
+        return game.players.get(player_number=current_turn)
 
     @database_sync_to_async
     def get_current_turn(self, game_id):
@@ -560,28 +680,11 @@ class GameConsumer(AsyncWebsocketConsumer):
         return selected_cards
 
     @database_sync_to_async
-    def set_stacked_cards(self, game_id, cards):
-        game = Game.objects.get(pk=game_id)
-        game.stacked_cards = cards
-        game.last_amount_played = len(cards)
-        game.save(update_fields=["stacked_cards", "last_amount_played"])
-
-    @database_sync_to_async
-    def get_last_amount_played(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        return game.last_amount_played
-
-    @database_sync_to_async
     def get_current_card(self, game_id):
         game = Game.objects.get(pk=game_id)
         return game.current_card
 
-    @database_sync_to_async
-    def set_current_card(self, game_id, card_number):
-        game = Game.objects.get(pk=game_id)
-        game.current_card = card_number
-        game.save(update_fields=["current_card"])
-
+    # TODO move to game model
     @database_sync_to_async
     def check_card_possession(self, game_id, player_id, cards):
         # returns 0 if the requested player has all the requested cards in their hand, 1 otherwise
@@ -618,10 +721,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             return None
 
     @database_sync_to_async
-    def get_number_of_cards_in_hand(self, player_id):
-        return CardsInHand.objects.filter(player_id=player_id).count()
-
-    @database_sync_to_async
     def get_player_name(self, player_id):
         player = Player.objects.get(pk=player_id)
         return player.name
@@ -630,18 +729,7 @@ class GameConsumer(AsyncWebsocketConsumer):
     def get_players(self, game_id):
         return Player.objects.filter(game_id=game_id)
 
-    @database_sync_to_async
-    def get_amount_of_card_in_hand(self, player_id, card_number):
-        return len(
-            CardsInHand.objects.filter(player_id=player_id, card_number=card_number)
-        )
-
-    @database_sync_to_async
-    def set_winning_player(self, game_id, player_number):
-        game = Game.objects.get(pk=game_id)
-        game.winning_player = player_number
-        game.save()
-
+    # TODO move to game model
     @database_sync_to_async
     def get_game_state(self, game_id, player_id):
         # Returns a dictionary containing the game state
@@ -715,12 +803,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         player.has_left = True
         player.save(update_fields=["has_left"])
-
-    @database_sync_to_async
-    def set_game_has_been_won(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        game.has_been_won = True
-        game.save(update_fields=["has_been_won"])
 
     @database_sync_to_async
     def game_has_been_won(self, game_id):

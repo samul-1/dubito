@@ -73,6 +73,14 @@ class Game(models.Model):
             game.save(update_fields=["locked"])
             return True
 
+    @classmethod
+    def unlock(cls, game_id):
+        # atomically unlock the game
+        with transaction.atomic():
+            game = cls.objects.select_for_update().get(pk=game_id)
+            game.locked = False
+            game.save(update_fields=["locked"])
+
     def get_last_player(self):
         return self.players.get(player_number=self.player_last_turn)
 

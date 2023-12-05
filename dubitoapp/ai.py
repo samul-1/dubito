@@ -4,14 +4,22 @@ from dubitoapp.models import CardsInHand
 from dubitoapp.types import GameState
 
 
-class DoubtAI:
+class DubitoAI:
     def __init__(self, game_state: GameState):
         self.game_state = game_state
 
     def update_state(self, game_state):
         self.game_state = game_state
 
+    # Function to start a new round and decide the rank to call
+    def start_round(self):
+        print("AI starting round")
+        rank_to_call = self._decide_rank_to_call()
+        cards_to_play = self._select_cards_to_play()
+        return {"action": "play", "rank": rank_to_call, "cards": cards_to_play}
+
     def play_turn(self):
+        print("AI playing turn")
         if self._should_doubt():
             return {"action": "doubt"}
 
@@ -22,12 +30,6 @@ class DoubtAI:
     def _should_doubt(self):
         probability_of_doubting = self._calculate_doubt_probability()
         return random.random() < probability_of_doubting
-
-    # Function to start a new round and decide the rank to call
-    def start_round(self):
-        rank_to_call = self._decide_rank_to_call()
-        cards_to_play = self._select_cards_to_play()
-        return {"action": "play", "rank": rank_to_call, "cards": cards_to_play}
 
     # Private function to calculate the probability of doubting
     def _calculate_doubt_probability(self):
@@ -93,13 +95,13 @@ class DoubtAI:
 
     # Private function to decide which rank to call at the start of the round
     def _decide_rank_to_call(self):
-        all_ranks = [str(n) for n in range(2, 14)]
+        all_ranks = [str(n) for n in range(1, 15)]
         cards_in_hand = self.game_state["my_hand"]
 
         # Frequency table of ranks in hand
         rank_frequency = {rank: 0 for rank in all_ranks}
         for card in cards_in_hand:
-            rank_frequency[CardsInHand.from_card_string(card)[0]] += 1
+            rank_frequency[str(CardsInHand.from_card_string(card)[0])] += 1
 
         # Select a rank with high frequency in hand, but add some randomness to avoid predictability
         called_rank = max(
