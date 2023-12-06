@@ -391,8 +391,35 @@ class Player(models.Model):
     )  # True if player has rejoined the game once it's restarted
     is_ai = models.BooleanField(default=False)  # True if player is an AI
 
+    # TODO handle cases where a player is deleted and we need to fill the gap in player numbers
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["game", "player_number"], name="player_unique_number"
+            )
+        ]
+
     def __str__(self):
         return str(self.pk)
+
+    # TODO use this in places where you are manually joining a player to a game
+    @classmethod
+    def join_game(cls, game_id, player_name):
+        with transaction.atomic():
+            # Lock the Game row for update to prevent race conditions
+            game = Game.objects.select_for_update().get(id=game_id)
+
+            game.joined_players += 1
+            game.save(update_fields=["joined_players"])
+
+            # Create a new player
+            new_player = cls(
+                name=player_name, game_id=game_id, player_number=game.joined_players
+            )
+            new_player.save()
+
+            return new_player
 
     @classmethod
     def create_ai_player(cls, game_id):
@@ -449,6 +476,10 @@ class CardsInHand(models.Model):
         seed = split_card_str[len(split_card_str) - 1]  # get last character for seed
         rank = int(card_string[:-1])  # remaining characters are the number
         return (rank, seed)
+
+    @staticmethod
+    def is_joker(card_string):
+        return CardsInHand.from_card_string(card_string)[0] == CardsInHand.JOKER_NUMBER
 
     @classmethod
     def create_from_card_string(
