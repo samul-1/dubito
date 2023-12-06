@@ -13,7 +13,10 @@ from django.db.models import Q
 from asgiref.sync import sync_to_async
 
 
-class GameConsumer(AsyncWebsocketConsumer):
+class GameConsumer(
+    # TODO use json consumer
+    AsyncWebsocketConsumer
+):
     def get_lock_game_manager(self):
         game_id = self.game_id
         lock_game = self.lock_game
@@ -351,6 +354,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         current_player = await self.get_current_player(self.game_id)
 
         while current_player.is_ai:
+            # TODO stop if game has been won
             game_state = await self.get_game_state(self.game_id, current_player.pk)
             ai = DubitoAI(consumer_game_state_to_game_state(game_state))
 
@@ -358,7 +362,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             # account for animations on the client side
             # TODO make the sleep time dependent on the length the stack had when it was last doubted, try to estimate the duration of the animation
             await asyncio.sleep(
-                *((9, 12) if len(game.stacked_cards) == 0 else (1.5, 5))
+                *((9, 12) if len(game.stacked_cards) == 0 else (3.5, 6))
             )
 
             async with self.get_lock_game_manager() as success:
@@ -406,14 +410,13 @@ class GameConsumer(AsyncWebsocketConsumer):
                     action = move["action"]
 
                     if action == "doubt":
-                        # TODO it shows "human player" doubted! in the frontend - investigate
                         outcome, game_winner = await sync_to_async(game.perform_doubt)(
                             current_player.pk
                         )
 
                         event_specifics = {
                             "type": "doubt",
-                            "who_doubted": await self.get_player_name(self.player_id),
+                            "who_doubted": current_player.name,
                             # TODO this is redundant, remove when you fix frontend
                             "who_doubted_number": current_player.player_number,
                             "who_was_doubted": await self.get_player_name(
@@ -442,6 +445,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 if game_winner is not None:
                     await self.send_game_has_been_won()
 
+                # TODO add sending emojis
                 await self.send_new_state_to_all_players(event_specifics)
 
             current_player = await self.get_current_player(self.game_id)
