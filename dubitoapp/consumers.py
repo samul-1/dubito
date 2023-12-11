@@ -263,7 +263,7 @@ class GameConsumer(
                 "who_doubted": await self.get_player_name(self.player_id),
                 # TODO this is redundant, remove when you fix frontend
                 "who_doubted_number": await self.get_player_number(self.player_id),
-                "who_was_doubted": await self.get_player_name(game.player_last_turn),
+                "who_was_doubted": await self.get_player_name(last_player_id),
                 # TODO rename to successful in frontend
                 "outcome": outcome["successful"],
                 # TODO rename to just stack in frontend
@@ -889,6 +889,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         await database_sync_to_async(self.scope["session"].save)()
 
         # look for an available game
+        # TODO it seems if two people join matchmaking almost at the same time, they don't get matched
         available_game = await self.get_available_game(less_than_joined_players=6)
 
         # join user to available game and send user its id
@@ -969,15 +970,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         if wait_time:
             await asyncio.sleep(wait_time)
 
-        game = await sync_to_async(Game.objects.get)(pk=game_id)
-        joined_players = game.joined_players
-
-        if joined_players == 1:
-            # trigger dealing of cards
-            loop = asyncio.get_event_loop()
-            loop.create_task(self.deal_cards_task(game_id))
-
-        for _ in range(min_players - joined_players):
+        async def _join_player_and_send_event():
             ai_player = await sync_to_async(Player.create_ai_player)(game)
             await self.join_user_to_game(ai_player, game)
 
@@ -988,6 +981,24 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
                     "game_id": game.pk,
                 },
             )
+
+        game = await sync_to_async(Game.objects.get)(pk=game_id)
+        joined_players = game.joined_players
+
+        if joined_players == 1:
+            # trigger dealing of cards
+            await _join_player_and_send_event()
+            loop = asyncio.get_event_loop()
+            loop.create_task(self.deal_cards_task(game_id))
+
+        # wait a bit to let other players join and avoid creating too many unnecessary AI players
+        await asyncio.sleep(7)
+
+        # refresh game object
+        game = await sync_to_async(Game.objects.get)(pk=game_id)
+        joined_players = game.joined_players
+        for _ in range(min_players - joined_players):
+            await _join_player_and_send_event()
 
     # Handlers
 
