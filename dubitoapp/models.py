@@ -1,6 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.utils import timezone
 import random
 
 from django.db import transaction
@@ -174,6 +172,7 @@ class Game(models.Model):
         removed_card_ranks, has_more_cards = loser.remove_complete_ranks_from_hand()
 
         if not has_more_cards:
+            # TODO move this (here and from play_cards) to the function that removes cards from a player's hand
             self.winning_player = loser.player_number
             self.save(update_fields=["winning_player"])
 
