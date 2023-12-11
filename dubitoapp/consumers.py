@@ -358,11 +358,25 @@ class GameConsumer(
             game_state = await self.get_game_state(self.game_id, current_player.pk)
             ai = DubitoAI(consumer_game_state_to_game_state(game_state))
 
+            stack_length = game_state["number_of_stacked_cards"]
+            last_amount_played = game_state["last_amount_played"]
+
+            # estimate animation duration
+            animation_duration = (0.4 * last_amount_played) + (  # card revealing
+                0.25 * stack_length + 1.5  # stack modal
+            )
+
+            doubt_delay_range = (animation_duration + 3, animation_duration + 5)
+            play_cards_delay_range = (3.5, 6)
+
             # sleep to simulate thinking - we make this longer when starting a round to
             # account for animations on the client side
-            # TODO make the sleep time dependent on the length the stack had when it was last doubted, try to estimate the duration of the animation
             await asyncio.sleep(
-                *((9, 12) if len(game.stacked_cards) == 0 else (3.5, 6))
+                *(
+                    doubt_delay_range
+                    if len(game.stacked_cards) == 0
+                    else play_cards_delay_range
+                )
             )
 
             async with self.get_lock_game_manager() as success:
@@ -889,7 +903,6 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         await database_sync_to_async(self.scope["session"].save)()
 
         # look for an available game
-        # TODO it seems if two people join matchmaking almost at the same time, they don't get matched
         available_game = await self.get_available_game(less_than_joined_players=6)
 
         # join user to available game and send user its id
