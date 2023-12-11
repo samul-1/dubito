@@ -1,5 +1,4 @@
 import random
-from dubitoapp.models import CardsInHand
 
 from dubitoapp.types import GameState
 
@@ -33,6 +32,8 @@ class DubitoAI:
 
     # Private function to calculate the probability of doubting
     def _calculate_doubt_probability(self):
+        from dubitoapp.models import CardsInHand
+
         # Basic strategy could involve counting the known cards and estimating the likelihood of a bluff
         num_cards_played = self.game_state["last_amount_played"]
         current_rank = self.game_state["current_rank"]
@@ -74,6 +75,8 @@ class DubitoAI:
 
     # Private function to select cards to play
     def _select_cards_to_play(self, start_round=False):
+        from dubitoapp.models import CardsInHand
+
         rank_to_play = self.game_state["current_rank"]
         cards_in_hand = self.game_state["my_hand"]
 
@@ -141,6 +144,7 @@ class DubitoAI:
                     if not can_win
                     else len(cards_in_hand)
                 )
+                # TODO use jokers
                 playable_cards = valid_cards if not can_win else cards_in_hand
                 return playable_cards[:num_to_play]
 
@@ -155,11 +159,14 @@ class DubitoAI:
                 for card in cards_in_hand
                 if CardsInHand.from_card_string(card)[0] != rank_to_play
             ]
-            num_to_play = random.randint(1, min(4, len(bluff_cards)))
+            # TODO play less cards if the players have less cards
+            num_to_play = random.randint(1, min(2, len(bluff_cards)))
             return random.sample(bluff_cards, num_to_play)
 
     # Private function to decide which rank to call at the start of the round
     def _decide_rank_to_call(self):
+        from dubitoapp.models import CardsInHand
+
         current_rank = self.game_state["current_rank"]
         all_ranks = [str(n) for n in range(1, 15)]
         cards_in_hand = self.game_state["my_hand"]
