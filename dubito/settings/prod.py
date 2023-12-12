@@ -6,7 +6,9 @@ from .base import *
 DEBUG = False
 
 DATABASES = {
-    "default": dj_database_url.parse(os.environ.get("DATABASE_URL", False), conn_max_age=600)
+    "default": dj_database_url.parse(
+        os.environ.get("DATABASE_URL", False), conn_max_age=600
+    )
 }
 
 MIDDLEWARE = ["whitenoise.middleware.WhiteNoiseMiddleware"] + MIDDLEWARE
@@ -15,7 +17,7 @@ WHITENOISE_MAX_AGE = 604800 * 2  # 2 weeks
 
 SECRET_KEY = os.environ.get("SECRET_KEY", None)
 
-ALLOWED_HOSTS = ["dubito.herokuapp.com", "playdubito.com", "www.playdubito.com"]
+ALLOWED_HOSTS = ["*"]
 
 # force https on heroku
 # SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -26,7 +28,10 @@ LOGGING = {
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "loggers": {
-        "django": {"handlers": ["console"], "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"), }
+        "django": {
+            "handlers": ["console"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+        }
     },
 }
 
