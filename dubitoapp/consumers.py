@@ -468,6 +468,9 @@ class GameConsumer(
                 await self.send_new_state_to_all_players(event_specifics)
 
             current_player = await self.get_current_player(self.game_id)
+            game = (
+                await self.get_game()
+            )  # refresh to get the new number of stacked cards to decide delay time
 
     # Checks
 
