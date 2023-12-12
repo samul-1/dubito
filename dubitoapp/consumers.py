@@ -428,13 +428,16 @@ class GameConsumer(
                             current_player.pk
                         )
 
+                        # TODO to avoid double query, query for player name immediately instead of id
+                        last_player_id = await self.get_player_last_turn(self.game_id)
+
                         event_specifics = {
                             "type": "doubt",
                             "who_doubted": current_player.name,
                             # TODO this is redundant, remove when you fix frontend
                             "who_doubted_number": current_player.player_number,
                             "who_was_doubted": await self.get_player_name(
-                                game.player_last_turn
+                                last_player_id
                             ),
                             # TODO rename to successful in frontend
                             "outcome": outcome["successful"],
