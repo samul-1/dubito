@@ -380,7 +380,7 @@ class Player(models.Model):
         Game, on_delete=models.CASCADE, null=True, default=None, related_name="players"
     )
     player_number = models.IntegerField(default=1)
-    name = models.CharField(max_length=10)
+    name = models.CharField(max_length=20)
     is_online = models.BooleanField(default=False)
     has_left = models.BooleanField(
         default=False
