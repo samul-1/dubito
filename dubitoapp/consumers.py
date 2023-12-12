@@ -362,7 +362,9 @@ class GameConsumer(
             last_amount_played = game_state["last_amount_played"]
 
             # estimate animation duration
-            animation_duration = (0.4 * last_amount_played) + (  # card revealing
+            animation_duration = (
+                1 + 0.2 + 0.1 * last_amount_played
+            ) + (  # card revealing
                 0.25 * stack_length + 1.5  # stack modal
             )
 
