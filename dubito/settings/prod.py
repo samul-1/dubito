@@ -18,7 +18,7 @@ WHITENOISE_MAX_AGE = 604800 * 2  # 2 weeks
 SECRET_KEY = os.environ.get("SECRET_KEY", None)
 
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ["*"]
+CSRF_TRUSTED_ORIGINS = ["https://*"]
 
 # force https on heroku
 # SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
