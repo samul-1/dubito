@@ -363,21 +363,26 @@ class GameConsumer(
 
             # estimate animation duration
             animation_duration = (
-                1 + 0.2 + 0.1 * last_amount_played
+                (1 + 0.2 + 0.1) * last_amount_played
             ) + (  # card revealing
                 0.25 * stack_length + 1.5  # stack modal
             )
 
-            doubt_delay_range = (animation_duration + 3, animation_duration + 5)
-            play_cards_delay_range = (3.5, 6)
+            doubt_delay_range = (
+                int(animation_duration) + 3,
+                int(animation_duration) + 5,
+            )
+            play_cards_delay_range = (2, 3)
 
             # sleep to simulate thinking - we make this longer when starting a round to
             # account for animations on the client side
             await asyncio.sleep(
-                *(
-                    doubt_delay_range
-                    if len(game.stacked_cards) == 0
-                    else play_cards_delay_range
+                random.randint(
+                    *(
+                        doubt_delay_range
+                        if len(game.stacked_cards) == 0
+                        else play_cards_delay_range
+                    )
                 )
             )
 

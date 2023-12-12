@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, List
 
 
 class Player(TypedDict):
@@ -10,9 +10,9 @@ class Player(TypedDict):
 
 class GameState(TypedDict):
     stack_length: int
-    my_hand: list[str]
+    my_hand: List[str]
     my_player_number: int
-    players: list[Player]
+    players: List[Player]
     last_turn_player_number: int
     current_rank: str
     last_rank: str
