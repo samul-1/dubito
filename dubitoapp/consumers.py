@@ -9,7 +9,7 @@ import asyncio
 from dubitoapp.ai import DubitoAI
 from dubitoapp.types import consumer_game_state_to_game_state
 from .models import Game, Player, CardsInHand, Info
-from django.db.models import Q
+from django.db.models import Q, F
 from asgiref.sync import sync_to_async
 
 
@@ -90,20 +90,23 @@ class GameConsumer(
         )
 
         # player left during their turn
+        # TODO simplify this check by using player id directly
         if await self.get_player_number(self.player_id) == await self.get_current_turn(
             self.game_id
         ):
             await asyncio.sleep(5)  # give the player a chance to come back
 
+            # TODO this check is already performed in check_current_player_online, remove
             # player hasn't come back after 5 seconds
             if not await self.is_online(self.player_id):
+                # TODO
                 await sync_to_async(game.pass_turn)()
-
                 await self.send_new_state_to_all_players(
                     {
                         "type": "pass_turn",
                     }
                 )
+
                 await self.check_current_player_online()  # verify that next player is online
 
     async def receive(self, text_data):
@@ -485,6 +488,7 @@ class GameConsumer(
         # verifies the current turn player is online, and if they aren't, passes turn onto next player
         current_turn_player_number = await self.get_current_turn(self.game_id)
         while (
+            # TODO simplify this check by having a method on the game model
             not (
                 await self.is_online(
                     await self.get_player_id_from_number(
@@ -492,18 +496,19 @@ class GameConsumer(
                     )
                 )
             )
-            and await self.number_of_online_players(self.game_id) > 0
+            and await self.there_are_online_players(self.game_id)
         ):
             # if player isn't online, increment turn, and iterate until you find a player that is online
             await sync_to_async(game.pass_turn)()
-
-            current_turn_player_number = await self.get_current_turn(self.game_id)
-
             await self.send_new_state_to_all_players(
                 {
                     "type": "pass_turn",
                 }
             )
+
+            current_turn_player_number = await self.get_current_turn(self.game_id)
+
+        # TODO have a turn_passed bool that is set to true when the turn is passed, and here, if it's true, call play_ai_turns
 
     # Reactions & chat
 
@@ -649,13 +654,8 @@ class GameConsumer(
     # Utility methods
 
     @database_sync_to_async
-    def number_of_online_players(self, game_id):
-        return Player.objects.filter(game_id=game_id, is_online=True).count()
-
-    @database_sync_to_async
-    def get_hand(self, player_id):
-        cards = CardsInHand.objects.filter(player_id=player_id)
-        return list(cards.values("card_seed", "card_number"))
+    def there_are_online_players(self, game_id):
+        return Player.objects.filter(game_id=game_id, is_online=True).exists()
 
     @database_sync_to_async
     def is_locked(self, game_id):
@@ -697,16 +697,6 @@ class GameConsumer(
             return player.pk
         except Player.DoesNotExist:
             return None
-
-    @database_sync_to_async
-    def get_stacked_cards(
-        self, game_id, amount=0
-    ):  # get a list of the cards that are on the stack
-        game = Game.objects.get(pk=game_id)
-        selected_cards = game.stacked_cards[-amount:]
-        if selected_cards == []:
-            return None
-        return selected_cards
 
     @database_sync_to_async
     def get_current_card(self, game_id):
@@ -827,13 +817,6 @@ class GameConsumer(
         player.save()
 
     @database_sync_to_async
-    def set_has_left(self, player_id):
-        player = Player.objects.get(pk=player_id)
-
-        player.has_left = True
-        player.save(update_fields=["has_left"])
-
-    @database_sync_to_async
     def game_has_been_won(self, game_id):
         return Game.objects.get(pk=game_id).has_been_won
 
@@ -860,15 +843,11 @@ class GameConsumer(
 
     @database_sync_to_async
     def increment_joined_players(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        game.joined_players += 1
-        game.save(update_fields=["joined_players"])
+        Game.objects.filter(pk=game_id).update(joined_players=F("joined_players") + 1)
 
     @database_sync_to_async
     def increment_event_count(self, game_id):
-        game = Game.objects.get(pk=game_id)
-        game.events += 1
-        game.save(update_fields=["events"])
+        Game.objects.filter(pk=game_id).update(events=F("events") + 1)
 
 
 class MatchmakingConsumer(AsyncWebsocketConsumer):
