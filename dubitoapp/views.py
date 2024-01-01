@@ -70,10 +70,6 @@ def create_new_game(request):
         )
 
 
-def trigger_error(request):
-    division_by_zero = 1 / 0
-
-
 def join_game(request):
     if request.method != "POST":
         return HttpResponseRedirect("/game")
