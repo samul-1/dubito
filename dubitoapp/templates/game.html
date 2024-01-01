@@ -2,6 +2,10 @@
 <html>
     {% load i18n %}
     <head>
+        <script
+        src="https://js.sentry-cdn.com/b0c919a2ccea4fd53b480f54cded1f26.min.js"
+        crossorigin="anonymous"
+        ></script>
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-8CBFR5FWBQ"></script>
         <script>
@@ -480,6 +484,8 @@
 
             assignAnimationConstants()
             // Vue.prototype.$my_player_number = {{ player_num }}
+
+            myUndefinedFunction();
         </script>
         <script src="{% static "game/newui.js" %}"></script>
         <script src="{% static "game/vuefrontend.js" %}"></script>
