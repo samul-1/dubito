@@ -215,7 +215,6 @@ class GameConsumer(
         loop.create_task(self.play_ai_turns())
 
     async def doubt(self):
-        raise TypeError("abc test")
         # TODO all these checks should be done inside the lock, especially the lock check
         if await self.is_locked(self.game_id):
             # someone else got here first
