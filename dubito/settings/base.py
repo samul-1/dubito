@@ -134,6 +134,8 @@ USE_TZ = True
 
 LOCALE_PATHS = [os.path.join(BASE_DIR, "dubitoapp/locale")]
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 15000
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
