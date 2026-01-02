@@ -10,6 +10,7 @@ from dubitoapp.ai import DubitoAI
 from dubitoapp.types import consumer_game_state_to_game_state
 from .models import Game, Player, CardsInHand, Info
 from django.db.models import Q, F
+from django.db import transaction
 from asgiref.sync import sync_to_async
 
 
@@ -899,7 +900,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
 
         # join user to available game and send user its id
         if available_game is not None:
-            await self.join_user_to_game(player, available_game)
+            joined_players = await self.join_user_to_game(player, available_game)
             # inform every player associated to this game that a new player joined
             await self.channel_layer.group_send(
                 self.group,
@@ -909,7 +910,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
                 },
             )
             # TODO this has to be repeated in the join_ai_players method, find a way to listen for the number of players and trigger this
-            if available_game.joined_players == 2:
+            if joined_players == 2:
                 # as soon as the second player joins, schedule dealing of cards
                 loop = asyncio.get_event_loop()
                 loop.create_task(self.deal_cards_task(available_game.pk))
@@ -952,10 +953,9 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         logging.info(str(session_player_id) + " has left matchmaking")
 
         # delete player and decrement number of joined players to game
-        await self.decrement_joined_players(game)
-        await self.delete_player_by_id(session_player_id)
+        remaining_players = await self.remove_player_from_game(session_player_id, game.pk)
 
-        if await self.get_joined_players_number(game) == 1:
+        if remaining_players == 1:
             # if the player who left was the last aside from the one that created the game,
             # tell that player to reset the timer because there are no players anymore
             await self.channel_layer.group_send(
@@ -966,8 +966,6 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
                 },
             )
 
-        # if player was the only one online, delete the game that was created due to them connecting
-        await self.delete_game_if_no_players(game)
         await self.channel_layer.group_discard(self.group, self.channel_name)
 
     # AI related methods
@@ -987,7 +985,10 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
                 },
             )
 
-        game = await sync_to_async(Game.objects.get)(pk=game_id)
+        try:
+            game = await sync_to_async(Game.objects.get)(pk=game_id)
+        except Game.DoesNotExist:
+            return
         joined_players = game.joined_players
 
         if joined_players == 1:
@@ -1000,7 +1001,10 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         await asyncio.sleep(7)
 
         # refresh game object
-        game = await sync_to_async(Game.objects.get)(pk=game_id)
+        try:
+            game = await sync_to_async(Game.objects.get)(pk=game_id)
+        except Game.DoesNotExist:
+            return
         joined_players = game.joined_players
         for _ in range(min_players - joined_players):
             await _join_player_and_send_event()
@@ -1064,7 +1068,10 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         # TODO prioritize games with less joined players
         from random import choice
 
+        # TODO you probably need to use a lock here with select_for_update, and release it after creating the player for the game
+
         qs = Game.objects.filter(
+            has_begun=False,
             is_public=True,
             joined_players__lt=less_than_joined_players,
         )
@@ -1074,14 +1081,53 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def join_user_to_game(self, player, game):
-        # TODO prevent race conditions
-        game.joined_players += 1
-        game.number_of_players += 1
-        game.save()
+        with transaction.atomic():
+            locked_game = Game.objects.select_for_update().get(pk=game.pk)
+            players = list(
+                Player.objects.filter(game=locked_game).order_by("player_number", "pk")
+            )
+            for idx, existing_player in enumerate(players, start=1):
+                if existing_player.player_number != idx:
+                    existing_player.player_number = idx
+                    existing_player.save(update_fields=["player_number"])
 
-        player.player_number = game.joined_players
-        player.game = game
-        player.save()
+            next_player_number = len(players) + 1
+            locked_game.joined_players = next_player_number
+            locked_game.number_of_players = next_player_number
+            locked_game.save(update_fields=["joined_players", "number_of_players"])
+
+            player.player_number = next_player_number
+            player.game = locked_game
+            player.save(update_fields=["player_number", "game"])
+
+            return next_player_number
+
+    @database_sync_to_async
+    def remove_player_from_game(self, player_id, game_id):
+        with transaction.atomic():
+            try:
+                game = Game.objects.select_for_update().get(pk=game_id)
+            except Game.DoesNotExist:
+                return 0
+
+            Player.objects.filter(pk=player_id, game_id=game_id).delete()
+
+            players = list(
+                Player.objects.filter(game_id=game_id).order_by("player_number", "pk")
+            )
+            for idx, player in enumerate(players, start=1):
+                if player.player_number != idx:
+                    player.player_number = idx
+                    player.save(update_fields=["player_number"])
+
+            if not players:
+                game.delete()
+                return 0
+
+            game.joined_players = len(players)
+            game.number_of_players = len(players)
+            game.save(update_fields=["joined_players", "number_of_players"])
+            return len(players)
 
     @database_sync_to_async
     def create_public_game(self):
