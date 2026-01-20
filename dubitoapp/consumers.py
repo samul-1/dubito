@@ -952,21 +952,51 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
 
         logging.info(str(session_player_id) + " has left matchmaking")
 
-        # delete player and decrement number of joined players to game
-        remaining_players = await self.remove_player_from_game(session_player_id, game.pk)
+        if game.joined_players <= 1:
+            # delete player and decrement number of joined players to game
+            remaining_players = await self.remove_player_from_game(
+                session_player_id, game.pk
+            )
+
+            if remaining_players == 1:
+                # if the player who left was the last aside from the one that created the game,
+                # tell that player to reset the timer because there are no players anymore
+                await self.channel_layer.group_send(
+                    self.group,
+                    {
+                        "type": "reset_timer_handler",
+                        "game_id": game.pk,
+                    },
+                )
+        else:
+            # Give the client a brief grace period to switch sockets before cleanup.
+            loop = asyncio.get_event_loop()
+            loop.create_task(
+                self.cleanup_matchmaking_disconnect(session_player_id, game.pk)
+            )
+
+        await self.channel_layer.group_discard(self.group, self.channel_name)
+
+    async def cleanup_matchmaking_disconnect(self, player_id, game_id, delay=5):
+        await asyncio.sleep(delay)
+
+        game = await self.get_game_by_id(game_id)
+        if game is None or await self.has_begun(game):
+            return
+
+        if await self.player_is_online(player_id):
+            return
+
+        remaining_players = await self.remove_player_from_game(player_id, game_id)
 
         if remaining_players == 1:
-            # if the player who left was the last aside from the one that created the game,
-            # tell that player to reset the timer because there are no players anymore
             await self.channel_layer.group_send(
                 self.group,
                 {
                     "type": "reset_timer_handler",
-                    "game_id": game.pk,
+                    "game_id": game_id,
                 },
             )
-
-        await self.channel_layer.group_discard(self.group, self.channel_name)
 
     # AI related methods
     async def join_ai_players(self, game_id, min_players=4, wait_time=2):
@@ -1166,6 +1196,20 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             return Player.objects.get(pk=player_id).game
         except:
             return None
+
+    @database_sync_to_async
+    def get_game_by_id(self, game_id):
+        try:
+            return Game.objects.get(pk=game_id)
+        except Game.DoesNotExist:
+            return None
+
+    @database_sync_to_async
+    def player_is_online(self, player_id):
+        try:
+            return Player.objects.get(pk=player_id).is_online
+        except Player.DoesNotExist:
+            return False
 
     @database_sync_to_async
     def delete_game_if_no_players(self, game):

@@ -6,6 +6,18 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.generic import CreateView
 import json
+import logging
+
+
+def _get_request_data(request):
+    if request.body:
+        try:
+            return json.loads(request.body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            logging.warning("Invalid JSON payload for %s", request.path)
+    if request.POST:
+        return request.POST.dict()
+    return {}
 
 
 def get_joined_players(request, game_id):
@@ -15,7 +27,7 @@ def get_joined_players(request, game_id):
 
 def create_new_game(request):
     if request.method == "POST":
-        form_data = json.loads(request.body.decode("utf-8"))
+        form_data = _get_request_data(request)
         form = GameForm(form_data)
 
         if form.is_valid():
@@ -74,7 +86,7 @@ def join_game(request):
     if request.method != "POST":
         return HttpResponseRedirect("/game")
 
-    form_data = json.loads(request.body.decode("utf-8"))
+    form_data = _get_request_data(request)
     form = JoinForm(form_data)
     if form.is_valid():
         code = int(form.cleaned_data["code"])
@@ -122,11 +134,11 @@ def game(request, game_id):
     # check if user has a session variable player_id
     if "player_id" not in request.session:
         err_str = "Unauthenticated user"
-
-    # check if this player has joined the game
-    this_player = get_object_or_404(Player, pk=request.session["player_id"])
-    if this_player not in players:
-        err_str = "La partita richiesta non esiste o si è già conclusa."
+    else:
+        # check if this player has joined the game
+        this_player = get_object_or_404(Player, pk=request.session["player_id"])
+        if this_player not in players:
+            err_str = "La partita richiesta non esiste o si è già conclusa."
 
     if err_str != "":
         return render(
@@ -152,7 +164,7 @@ def feedback_create(request):
     if request.method != "POST":
         return HttpResponseRedirect("/game")
 
-    form_data = json.loads(request.body.decode("utf-8"))
+    form_data = _get_request_data(request)
     form = FeedbackForm(form_data)
     if form.is_valid():
         sender_name = form.cleaned_data["sender_name"]
